@@ -36,8 +36,8 @@
 %% the commands and values with those provided to you when you
 %% complete the rights form.
 \setcopyright{acmcopyright}
-\copyrightyear{2018}
-\acmYear{2018}
+\copyrightyear{2020}
+\acmYear{2020}
 \acmDOI{10.1145/1122445.1122456}
 
 %% These commands are for a PROCEEDINGS abstract or paper.
@@ -197,40 +197,46 @@
 \maketitle
 
 \section{Introduction}
-In recent years there has been an increased interest in and use of graph technologies. Application areas are wide reaching from healthcare to more traditional use cases such as social networks. Graph systems can be categorised into graph databases and graph processing frameworks. This paper focuses on graph databases, which at a high-level differ from relational databases in that they provide application programmers with a graph data model, as oppose to relations linked through foreign keys. Specifically, graph databases use the labelled property graph data model consisting of vertices and edges, which each can have properties and be group through labels.
+In recent years there has been an increased interest in and use of graph technologies[REF]. Application areas are wide reaching from healthcare to more traditional use cases such as social networks [REF]. Graph databases model as a \textit{labeled property graph}, vertices represent entities and edges represent the relationship between entities; properties can be stored on both vertices and edges [REF].
 
-As the sizes of graphs grow the limits of single node, replicated graph databases are being reached. This has lead to the development of horizontally scalable distributed graph databases. Moving from a single-node database to one partitioned and distributed across servers introduces several interesting problems regarding data consistency. Graphs place a high demand on the underlying database and maintaining structural integrity across partitions - called \textit{reciprocal consistency} - in a distributed graph database is non-trivial.
+In practice graphs can be extremely large [REF], exceeding the storage capacity of a single node database. An approach to storing large graphs is to partition graph data over several machines in a cluster [REF]. Moving from a single-node database to one partitioned and distributed across servers introduces several interesting problems regarding data consistency. Graphs place a high demand on the underlying database and maintaining structural integrity across partitions - called \textit{reciprocal consistency} - in a distributed graph database is non-trivial.
 
-Recent work has investigated how violation of reciprocal consistency can lead to semantic corruption at alarmingly rates. In order to prevent this form of inconsistent one could implement a heavyweight coordination protocol across partitions providing Serializability or Snapshot Isolation, which have associated performance costs. The approach taken in this paper is to build on earlier work and develop a protocol that provides weaker consistency guarantees whilst still preserving reciprocal consistency.
+Recent work has investigated how violation of reciprocal consistency can lead to semantic corruption at alarmingly rates [REF]. In order to prevent this form of inconsistency, one could implement a heavyweight coordination protocol across partitions providing Serializability or Snapshot Isolation, which have associated performance costs [REF]. The approach taken in this paper is to build on earlier work and develop a protocol that provides weaker consistency guarantees whilst still preserving reciprocal consistency.
+
+\section{Reciprocal Consistency}
+\label{sec:recipr-cons}
+
+In the labelled property graph data model edges have direction, there is a \textit{source} and a \textit{destination} vertex. However, for query performance, edge information is stored with \textbf{both} the source and destination vertices. This facilitates bi-directional edge traversal. Graphs are often implemented as an collection of adjacency lists where a list contains neighbors of a given vertex [REF].
+
+Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit. It is expressed using vertices A and B, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from A (source) to B (destination). Adjacency lists of both A and B record information about that edge and this information is mutually reciprocal (or inverse) of each other: A's list will indicate `A \textit{wrote} B' while B's will have `B \textit{written} by A'. Thus, a query `list all titles by the author who wrote The Hobbit' can be answered by landing at B and then traversing to A, even though AB is a directed edge at model level abstraction.
+
+The reciprocal nature of information at the ends of an edge not only facilitates bidirectional traversal but also ensures operational correctness. Without it, the queries `who wrote The Hobbit?' and `what all did Tolkien write?' could yield in different results. So, an edge is said to be \textit{reciprocally consistent}, if the adjacency lists of the vertices it connects have mutually reciprocal information.
+
+
 \section{Distributed Graph Databases}
 
-In a graph database records represent vertices containing vertex properties and an adjacency list containing edge "pointers" to other vertices along with associated properties. Whilst edges typically have direction they are physically implemented as one would implement an undirected graph with meta-data indicating the direction and some reciprocal information regarding the edge. For example, an edge E joining two vertices A and B results in reciprocal entries for E being written in the adjacency lists for both A and B. If this edge represented the edge between an author and their book, the following reciprocal information would be stored A would store the information \textit{wrote B} and B would store the information \textit{written by A}. This permits bi-directional traversal of the edge, a query reading either A or B would be able to reify the edge correctly. When the adjacency lists for vertices are mutually compatible they are said to be \textit{reciprocally consistent}. The challenge is maintaining reciprocally consistency in a distributed graph database.
+A common approach to partitioning a graph is to use a balanced edge-cut. Vertices are evenly assigned to partitions in a manner that minimises the number of edges that span partitions - referred to as \textbf{distributed edges}. Regardless of the partitioning strategy used a non-negligible number of edges are distributed edges.
 
-A common approach to partitioning a graph is to use a balanced edge-cut. Vertices are evenly assigned to partitions in a manner that minimises the number of edges that span partitions - referred to as \textbf{distributed edges}. That is the number of entries in a vertex's adjacency list that point to vertices on remote servers is minimised. However, regardless of the graph partitioning algorithm used there will exist a non-negligible number of distributed edges. Without sufficient isolation between concurrent updates to a distributed edge, reciprocal consistency can be violated.
+When concurrent queries update an edge, maintaining reciprocal consistency gets harder if the edge is distributed, i.e., its vertices are stored in distinct servers of a distributed database system. Our earlier work [REF] established that when edges are permitted to become reciprocally inconsistent, independent queries reading inconsistent information from different ends of such edges, do corrupt the database through their subsequent writes, and that a significant degree of corruption can result within durations that are worryingly small compared to database lifetime.
 
-To preserve reciprocal consistency distributed edges could be updated through a protocols such as 2-Phase Commit with isolation provided via 2-Phase Locking. However, such an approach is well known to negatively impact scalability and performance. The approach taken here is provide a weaker isolation model whilst still preserving reciprocal consistency.
+Of course, reciprocal consistency can be maintained as a part of enforcing any of several known strong isolation guarantees (e.g., snapshot isolation) but that incurs a performance cost if users are interested only in ensuring reciprocal consistency to preserve the integrity of a distributed database. This paper addresses that
+challenge. It proposes a suite of simple, coordination-free protocols and compares their performance through simulations.
+
+
 
 \section{Preserving Reciprocal Consistency}
-Assume a graph database partitioned across servers in a cluster, with each partition being a Raft cluster providing linearizable reads and writes to the data objects it is responsible for. One strawman approach to preserving reciprocal consistency would be for update operations to take an exclusive lock on both records that make up the distributed edge, releasing locks when the update has been completed. Locking is a pessimistic approach and has the implicit assumption that concurrent updates will be common, this is not the case in graph databases. A second approach would be having a read operation read both records to verify the information is consistent. The problem here is that read operations dominant graph workloads and every read of a distributed edge would incur the penalty of traversing the network twice.
 
-The approach developed leverages 1) the frequency of concurrent update operations to the same edge is low 2) a logical write of an edge consists of writes to two physical records 3) read operations only access a single record. We now outline a variant of the \textbf{Collision Detection} mechanism presented in REF and discuss it's combination with Raft. % assume a mechanism to guarantee consistency of operations within partitions
-\subsection{Collision Detection Mechanism}
+Both protocols described below leverage the same fact: at the logical level, updating a distributed edge is a single operation. However, it consists of two sub-operations, it must update information at the source and destination vertices an edge connects. Note, the order in which the sub-operations take place is not constrained. Updating the source then the destination is equally as likely as updating the destination then the source.
 
-Initially, each write to a distributed edge is provisional. They become permanent only if, and when, the transaction that contains them is allowed to commit.
+\subsection{Probabilistic Protocol}
 
-Provisional writes on a given record can occur only one at a time and each is time-stamped using a combination of the transaction ID and the local host's clock - used to uniquely identify the operation. This is stored in a order-preserving provisional write list. Thus, when a transaction attempts to write a given record, it can identify all other transactions, called predecessors (if any), that have earlier wrote that record provisionally along with the transaction responsible for latest committed value. Currently no higher information regarding specific operation type is assumed. Read operations receive the latest committed version of a record and ignore any provisionally updated values.
+In the probabilistic approach, an edge update is allowed if an earlier, temporary update is sufficiently early by D as per the local clock time and D is the bound on the server communication delays with probability (1-e). (Note that a more pessimistic estimation of D results in a smaller e) In this approach, the smaller the value chosen for D, the more is the extent of contentions permitted, hence the smaller is the number of expected aborts and, on the other hand, the larger is the risk of reciprocal consistency not being ensured and the database being corrupted. These are examined through simulations.
 
-\textbf{Collision detection}: An edge has a \textit{tail record} and \textit{head record} - a write operation by a transaction must write to \textit{both} records. The order in which updates occur is not constrained, that is, one update may update the head and then after a network delay the tail, the opposite can also occur with equal chance.
+\subsection{Deterministic Protocol}
 
-In order to distinguish between which write a transaction they are given labels 1 and 2, which act as 'history' meta-data indicating the partition where a transaction started and completed its write. The meta-data consists of 1) local timestamp, 2) transaction ID and 3) order label.
-
-The following rule is applied: \textbf{Cancellation rule:} If, by the time an operation is performing it's second update, if a previous provisional write labeled 1 has been observed, but the corresponding label 2 has not been observed, then this write is cancelled. In other words, a write is cancelled if it has observed the start of a previous attempt, but not its completion. This prevents writes happening out-of-order. When an update is cancelled, the transaction containing it is aborted and all its provisional records are erased.
-
-\subsection{Alternative Methods}
+In the deterministic approach, queries updating distributed edges are expected to carry with them some state information as they traverse from one end server of a distributed edge to the other. Other than this overhead, there is no requirement for estimating bound on traversal delays. Our simulations will compare the number of aborts incurred in both approaches.
 
 \section{Evaluation \& Results}
-
-In order to test the throughput and latency of the proposed mechanism a discrete event orientated simulation has been performed. Collision detection has been tested against the simple approach defined in Section 3.
 
 \section{Related Work}
 
