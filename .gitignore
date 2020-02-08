@@ -2,3 +2,7 @@
 log/
 papoc.docx
 resources/
+simulations/deterministic/target/*
+simulations/deterministic/.idea/
+*.iml
+simulations/deterministic/target/*

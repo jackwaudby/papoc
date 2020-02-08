@@ -8,7 +8,6 @@ import java.util.Random;
 public class SimulationRandom {
 
     private ExponentialDistribution networkDelayDistribution;
-    private ExponentialDistribution serviceTimeDistribution;
     private ExponentialDistribution arrivalDistribution;
     private Random edgeId;
     private Random side;
@@ -25,11 +24,9 @@ public class SimulationRandom {
     public SimulationRandom() {
 
         double averageNetworkDelay = SimulationConfiguration.getInstance().getAverageNetworkDelay();
-        double averageArbiterServiceTime = SimulationConfiguration.getInstance().getAverageArbiterServiceTime();
 
         // init random number generators
         networkDelayDistribution = new ExponentialDistribution(averageNetworkDelay);
-        serviceTimeDistribution = new ExponentialDistribution(averageArbiterServiceTime);
         double arrivalRate = (double) 1/SystemMetrics.getInstance().getTps();
         arrivalDistribution = new ExponentialDistribution(arrivalRate);
         edgeId = new Random();
@@ -40,7 +37,6 @@ public class SimulationRandom {
         if (SimulationConfiguration.getInstance().isSeedSet()) {
             long seedValue = SimulationConfiguration.getInstance().getSeedValue();
             networkDelayDistribution.reseedRandomGenerator(seedValue);
-            serviceTimeDistribution.reseedRandomGenerator(seedValue);
             arrivalDistribution.reseedRandomGenerator(seedValue);
             edgeId.setSeed(seedValue);
             side.setSeed(seedValue);
@@ -71,11 +67,6 @@ public class SimulationRandom {
     public double generateNetworkDelay() {
         return GlobalClockSingleton.getInstance().getGlobalClock()
                 + networkDelayDistribution.sample();
-    }
-
-    public double generateServiceDelay() {
-        return GlobalClockSingleton.getInstance().getGlobalClock() +
-                serviceTimeDistribution.sample();
     }
 
     public double generateNextArrival() {

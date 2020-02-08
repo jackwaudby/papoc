@@ -53,31 +53,22 @@ public class Update2Action  {
             }
 
             if (transaction.getUpdatesCompleted() == transaction.getUpdates()) { // finished updating
-                if (transaction.getPredecessors().size() > 0 ) { // has predecessors
-                    LOGGER.debug("Completed Updates");
-                    LOGGER.debug("Predecessors Non-empty");
-                    if (SimulationConfiguration.getInstance().getUseArbiter()) {
-                        LOGGER.debug("Go To Arbiter");
-                        ArbiterSingleton.getInstance().getQueue().add(transaction); // add to arbiter queue
-                        SystemMetrics.getInstance().incrementSentToArbiter();
-                    }
-                } else { // no predecessors
-                    LOGGER.debug("Transaction Successful");
-                    transaction.setEndTime(update2Event.getEventTime()); // set end time
-                    LOGGER.debug("All Provisional Writes Removed");
-                    GlobalEdgeListSingleton.getInstance().
-                            clearProvisionalWrites(transaction.getId()); // clear provisional writes
-                    SystemMetrics.getInstance().incrementCommitted();
-                    SystemMetrics.getInstance().addLifetime(transaction.getLifetime());
 
-                    // remove from active list + everyone pred lists
-                    GlobalActiveTransactionListSingleton.getInstance().removeTransaction(transaction.getId());
+                LOGGER.debug("Transaction Successful");
+                transaction.setEndTime(update2Event.getEventTime()); // set end time
+                LOGGER.debug("All Provisional Writes Removed");
+                GlobalEdgeListSingleton.getInstance().
+                        clearProvisionalWrites(transaction.getId()); // clear provisional writes
+                SystemMetrics.getInstance().incrementCommitted();
+                SystemMetrics.getInstance().addLifetime(transaction.getLifetime());
 
-                }
+                // remove from active list + everyone pred lists
+                GlobalActiveTransactionListSingleton.getInstance().removeTransaction(transaction.getId());
+
             } else {
                 // create another update 1
                 // TODO: Code below simulates delays between updates
-//                Update1Event nextUpdateEvent = new Update1Event(SimulationRandom.getInstance().generateNetworkDelay(), EventType.UPDATE_1,transaction);
+//              Update1Event nextUpdateEvent = new Update1Event(SimulationRandom.getInstance().generateNetworkDelay(), EventType.UPDATE_1,transaction);
                 Update1Event nextUpdateEvent =
                         new Update1Event(
                                 GlobalClockSingleton.getInstance().getGlobalClock(),
@@ -94,16 +85,11 @@ public class Update2Action  {
 
             transaction.setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
             SystemMetrics.getInstance().incrementCollisions();
-            SystemMetrics.getInstance().incrementAborts();
             SystemMetrics.getInstance().addLifetime(transaction.getLifetime());
 
             // schedule event at other side for removal
             AbortCleanUpEvent abortCleanUpEvent = new AbortCleanUpEvent(SimulationRandom.getInstance().generateNetworkDelay(),EventType.ABORT_CLEAN_UP,transaction);
             GlobalEventListSingleton.getInstance().addEvent(abortCleanUpEvent);
-
-            // pre-clean up event
-//            GlobalEdgeListSingleton.getInstance().clearProvisionalWrites(transaction.getId());
-//            GlobalActiveTransactionListSingleton.getInstance().removeTransaction(transaction.getId());
 
         }
     }

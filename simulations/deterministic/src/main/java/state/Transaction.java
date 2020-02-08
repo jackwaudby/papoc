@@ -20,11 +20,7 @@ public class Transaction {
 
     public Transaction(int id) {
         this.id = id;
-        if (SimulationConfiguration.getInstance().getUseArbiter()) {
-            this.updates = SimulationRandom.getInstance().getTransactionUpdates();
-        } else {
-            this.updates = 1;
-        }
+        this.updates = SimulationRandom.getInstance().getTransactionUpdates();
         this.updatesCompleted = 0;
         predecessors = new ArrayList<>();
         collisionDetection = new ArrayList<>();
