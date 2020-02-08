@@ -55,42 +55,6 @@ public class GlobalEdgeListSingleton {
         return edgeList;
     }
 
-    /**
-     * Clears the provisional writes at all edges for a given transaction id
-     * @param transactionId transaction whose provisional writes are cleared
-     */
-    public void clearProvisionalWrites(int transactionId) {
 
-        for (DistributedEdge distributedEdge: edgeList
-             ) {
-            distributedEdge.removeProvisionalWrites(transactionId);
-        }
-
-    }
-
-    /**
-     * Collects predecessors (transaction ids) for a given side of a distributed edge
-     * @param edgeId distributed edge id
-     * @param side side of the distributed edge
-     * @return
-     */
-    public ArrayList<Integer> collectPredecessors(int edgeId, int side) {
-        ArrayList<Integer> result = new ArrayList<>();
-        ArrayList<ProvisionalWrite> provisionalWrites;
-        if (side == 0) {
-            provisionalWrites =
-                    getEdge(edgeId).getLeftProvisionalWrites();
-        } else {
-            provisionalWrites =
-                    getEdge(edgeId).getRightProvisionalWrites();
-        }
-        if (!provisionalWrites.isEmpty()) {
-            for (ProvisionalWrite pw : provisionalWrites
-            ) {
-                result.add(pw.getTransactionId());
-            }
-        }
-        return result;
-        }
 
 }

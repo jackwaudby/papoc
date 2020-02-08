@@ -11,7 +11,7 @@ public class WriteOutResults {
 
     public static void writeOutResults() {
 
-        String[] headers = {"tps","arrivals", "aborts","collisions","arbitration","commits","sentToArbiter"};
+        String[] headers = {"tps","arrivals","collisions","commits","duration"};
 
         StringBuilder headerStringBuilder = new StringBuilder();
         for(String header : headers){
@@ -26,7 +26,7 @@ public class WriteOutResults {
         BufferedWriter outputStream = null;
         FileWriter fileWriter;
         try {
-            fileWriter = new FileWriter("results.csv");
+            fileWriter = new FileWriter("./results/probabilistic_1000.csv");
             outputStream = new BufferedWriter(fileWriter);
             outputStream.append(headerString);
             outputStream.append("\n");

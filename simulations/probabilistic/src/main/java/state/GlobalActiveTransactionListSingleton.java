@@ -23,12 +23,7 @@ public class GlobalActiveTransactionListSingleton {
     public void removeTransaction(int transactionId){
         // remove from list
         activeTransactionList = (ArrayList<Transaction>) activeTransactionList.stream().filter(transaction -> transaction.getId() != transactionId).collect(Collectors.toList());
-        // remove from all pred lists
-        for (Transaction transaction: activeTransactionList
-             ) {
-            ArrayList<Integer> newPredecessors = (ArrayList<Integer>) transaction.getPredecessors().stream().filter(pred -> pred != transactionId).collect(Collectors.toList());
-            transaction.setPredecessors(newPredecessors);
-        }
+
     }
 
     public ArrayList<Transaction> getActiveTransactionList() {

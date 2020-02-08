@@ -11,6 +11,7 @@ public class SystemMetrics {
     private int collisions;     // aborts by collision detection mechanism
     private double cumulativeLifetimes;
     private int commits;
+    private long runtime;
 
     private SystemMetrics() {
         arrivals = 0;
@@ -18,6 +19,7 @@ public class SystemMetrics {
         cumulativeLifetimes = 0;
         commits = 0;
         tps = SimulationConfiguration.getInstance().getTPS();
+        runtime = 0;
     }
 
     public void reset() {
@@ -69,11 +71,16 @@ public class SystemMetrics {
         return cumulativeLifetimes / (collisions + commits);
     }
 
+    public void setRuntime(long runtime) {
+        this.runtime = runtime;
+    }
+
     @Override
     public String toString() {
         return tps +
                 "," + arrivals +
                 "," + collisions +
-                "," + commits;
+                "," + commits +
+                "," + runtime;
     }
 }

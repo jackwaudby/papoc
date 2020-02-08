@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="prcp" />
+        <module name="probabilistic" />
       </profile>
     </annotationProcessing>
   </component>

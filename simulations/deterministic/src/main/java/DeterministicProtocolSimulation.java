@@ -11,6 +11,8 @@ public class DeterministicProtocolSimulation {
 
     public static void main(String[] args) {
 
+        long startTime = System.currentTimeMillis();
+
         int databaseSize = SimulationConfiguration.getInstance().getDatabaseSize();
 
         // init. database
@@ -42,6 +44,12 @@ public class DeterministicProtocolSimulation {
         LOGGER.info("Commits: " + SystemMetrics.getInstance().getCommits());
         LOGGER.info("Av Resp. Time: " +  SystemMetrics.getInstance().getAverageResponseTime());
 
+        long endTime = System.currentTimeMillis();
+
+        long duration = (endTime - startTime)/1000/60;
+
+        SystemMetrics.getInstance().setRuntime(duration);
+
         if (SimulationConfiguration.getInstance().saveResults()) {
             WriteOutResults.writeOutResults(); // write out results
         }
@@ -54,6 +62,10 @@ public class DeterministicProtocolSimulation {
 
         while (SystemMetrics.getInstance().getCompleted() < txnLimit) {
 
+            if (SystemMetrics.getInstance().getArrivals() % 10 == 0){
+                System.out.print("Completed: " + SystemMetrics.getInstance().getCompleted() +
+                        " Collisions: " + SystemMetrics.getInstance().getCollisions() + "\r");
+            }
 
             AbstractEvent nextEvent = GlobalEventListSingleton.getInstance().getNextEvent();   // get next event
 

@@ -3,18 +3,17 @@ import event.EventType;
 import event.Update1Event;
 import event.Update2Event;
 import org.apache.log4j.Logger;
-import state.ProvisionalWrite;
+import state.*;
+import utils.SimulationConfiguration;
 import utils.SimulationRandom;
-import state.GlobalEventListSingleton;
-import state.GlobalEdgeListSingleton;
+import utils.SystemMetrics;
 
 import java.util.ArrayList;
 
 /**
  * The first update of a distributed edge.
- * Choose an edge and side to update.
- * Collect collision meta data.
- * Add provisional write.
+ * Choose source or destination
+
  * Create update 2 event.
  */
 public class Update1Action {
@@ -29,45 +28,56 @@ public class Update1Action {
         LOGGER.debug("Edge ID: " + edgeId);
 
         int side = SimulationRandom.getInstance().getSide(); // choose side of distributed edge to update
-        LOGGER.debug("Edge Side: " + side); // sides indicated by 0 (left) or 1 (right)
+        LOGGER.debug("Edge Side: " + side); // sides indicated by 0 (source) or 1 (destination)
 
-        // collect provisional write info from edge for collision detection at second update
-        ArrayList<ProvisionalWrite> pws;
-        if (side == 0) { // get information from left side
-            pws = GlobalEdgeListSingleton.getInstance().getEdge(edgeId).getLeftProvisionalWrites();
-        } else { // get information from right  side
-            pws = GlobalEdgeListSingleton.getInstance().getEdge(edgeId).getRightProvisionalWrites();
-        }
-        if (!pws.isEmpty()) { // if there is some information
-            for (ProvisionalWrite pw : pws // add to transaction's collision information
-            ) {
-                update1Event.getTransaction().addCollisionDetectionInformation(pw);
+        double delta = SimulationConfiguration.getInstance().getDelta();
+
+
+
+        if (side == 0) { // source first
+            if (update1Event.getEventTime() > GlobalEdgeListSingleton.getInstance().getEdge(edgeId).getSourceLock()){
+                // proceed
+                GlobalEdgeListSingleton.getInstance().getEdge(edgeId).setSourceLock(update1Event.getEventTime() + delta);
+                LOGGER.debug("Add update 2 event");
+                Update2Event update2Event =
+                        new Update2Event(
+                                SimulationRandom.getInstance().generateNetworkDelay(),
+                                EventType.UPDATE_2, update1Event.getTransaction(),
+                                edgeId,
+                                1);
+                GlobalEventListSingleton.getInstance().addEvent(update2Event);
+            } else {
+                LOGGER.debug("Transaction Aborted");
+                update1Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
+                SystemMetrics.getInstance().incrementCollisions();
+                SystemMetrics.getInstance().addLifetime(update1Event.getTransaction().getLifetime());
+                // remove from active list
+                GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update1Event.getTransaction().getId());
             }
-        }
-        LOGGER.debug("Collision Detection: " + update1Event.getTransaction().getCollisionDetection());
-
-
-        LOGGER.debug("Add provisional write to edge " + edgeId);
-        ProvisionalWrite provisionalWrite =
-                new ProvisionalWrite(update1Event.getTransaction().getId(),1); // provisional write with label 1
-
-        if (side == 0) { // add provisional to the side transaction is updating
-            GlobalEdgeListSingleton.getInstance().getEdge(edgeId).addProvisionalWrite(true,provisionalWrite);
         } else {
-            GlobalEdgeListSingleton.getInstance().getEdge(edgeId).addProvisionalWrite(false,provisionalWrite);
+            if (update1Event.getEventTime() > GlobalEdgeListSingleton.getInstance().getEdge(edgeId).getDestinationLock()){
+                // proceed
+                GlobalEdgeListSingleton.getInstance().getEdge(edgeId).setDestinationLock(update1Event.getEventTime() + delta);
+                LOGGER.debug("Add update 2 event");
+                Update2Event update2Event =
+                        new Update2Event(
+                                SimulationRandom.getInstance().generateNetworkDelay(),
+                                EventType.UPDATE_2, update1Event.getTransaction(),
+                                edgeId,
+                                0);
+                GlobalEventListSingleton.getInstance().addEvent(update2Event);
+            } else {
+                LOGGER.debug("Transaction Aborted");
+                update1Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
+                SystemMetrics.getInstance().incrementCollisions();
+                SystemMetrics.getInstance().addLifetime(update1Event.getTransaction().getLifetime());
+                // remove from active list
+                GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update1Event.getTransaction().getId());
+            }
+
         }
 
-        LOGGER.debug("Add update 2 event");
-        Update2Event update2Event;
-                if(side == 0){
-                     update2Event = new Update2Event(SimulationRandom.getInstance().generateNetworkDelay(), EventType.UPDATE_2, update1Event.getTransaction(),edgeId,1);
 
-                } else
-                {
-                    update2Event = new Update2Event(SimulationRandom.getInstance().generateNetworkDelay(), EventType.UPDATE_2, update1Event.getTransaction(),edgeId,0);
-
-                }
-        GlobalEventListSingleton.getInstance().addEvent(update2Event);
 
     }
 }

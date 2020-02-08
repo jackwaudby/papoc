@@ -6,3 +6,6 @@ simulations/deterministic/target/*
 simulations/deterministic/.idea/
 *.iml
 simulations/deterministic/target/*
+.Rhistory
+simulations/probabilistic/target/*
+simulations/probabilistic/.idea
