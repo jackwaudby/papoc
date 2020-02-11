@@ -30,6 +30,9 @@
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
+\usepackage[ruled,vlined]{algorithm2e}
+
+
 %% Rights management information.  This information is sent to you
 %% when you complete the rights form.  These commands have SAMPLE
 %% values in them; it is your responsibility as an author to replace
@@ -197,6 +200,7 @@
 \maketitle
 
 \section{Introduction}
+
 In recent years there has been an increased interest in and use of graph technologies[REF]. Application areas are wide reaching from healthcare to more traditional use cases such as social networks [REF]. Graph databases model as a \textit{labeled property graph}, vertices represent entities and edges represent the relationship between entities; properties can be stored on both vertices and edges [REF].
 
 In practice graphs can be extremely large [REF], exceeding the storage capacity of a single node database. An approach to storing large graphs is to partition graph data over several machines in a cluster [REF]. Moving from a single-node database to one partitioned and distributed across servers introduces several interesting problems regarding data consistency. Graphs place a high demand on the underlying database and maintaining structural integrity across partitions - called \textit{reciprocal consistency} - in a distributed graph database is non-trivial.
@@ -232,9 +236,42 @@ Both protocols described below leverage the same fact: at the logical level, upd
 
 In the probabilistic approach, an edge update is allowed if an earlier, temporary update is sufficiently early by D as per the local clock time and D is the bound on the server communication delays with probability (1-e). (Note that a more pessimistic estimation of D results in a smaller e) In this approach, the smaller the value chosen for D, the more is the extent of contentions permitted, hence the smaller is the number of expected aborts and, on the other hand, the larger is the risk of reciprocal consistency not being ensured and the database being corrupted. These are examined through simulations.
 
+
+\begin{algorithm}
+  \SetAlgoLined
+\KwResult{Probabilistic Reciprocal Consistency}
+ initialization\;
+ \While{While condition}{
+  instructions\;
+  \eIf{condition}{
+   instructions1\;
+   instructions2\;
+   }{
+   instructions3\;
+  }
+ }
+ \caption{How to write algorithms}
+\end{algorithm}
+
 \subsection{Deterministic Protocol}
 
 In the deterministic approach, queries updating distributed edges are expected to carry with them some state information as they traverse from one end server of a distributed edge to the other. Other than this overhead, there is no requirement for estimating bound on traversal delays. Our simulations will compare the number of aborts incurred in both approaches.
+
+\begin{algorithm}
+  \SetAlgoLined
+\KwResult{Deterministic Reciprocal Consistency}
+ initialization\;
+ \While{While condition}{
+  instructions\;
+  \eIf{condition}{
+   instructions1\;
+   instructions2\;
+   }{
+   instructions3\;
+  }
+ }
+ \caption{How to write algorithms}
+\end{algorithm}
 
 \section{Evaluation \& Results}
 
