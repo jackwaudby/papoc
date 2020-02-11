@@ -1,3 +1,3 @@
 #!/bin/bash
 
-Rscript approximations/sim-probabilistic.R
+Rscript approximations/sim-probabilistic.R 0.1
