@@ -47,7 +47,7 @@ for (i in 1:length(lam)) {
 }
 
 results = cbind(lam,U)
-write.csv(results,paste0('./results/corruption/probabilistic_,',eps,'.csv'), row.names=FALSE)
+write.csv(results,paste0('./results/corruption/probabilistic_',gsub("\\.","\\_",eps),'.csv'), row.names=FALSE)
 
 
 
