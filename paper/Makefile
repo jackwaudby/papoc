@@ -14,3 +14,5 @@ clean:
 	@-rm -f *.log
 	@-rm -f *.fdb_latexmk
 	@-rm -f *.fls
+	@-rm -f *.bbl
+	@-rm -f *.blg

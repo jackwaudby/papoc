@@ -36,9 +36,14 @@ public class SimulationConfiguration {
      * Get average transaction arrival rate
      * @return double, average transaction arrival rate
      */
-     Integer getTPS() {
+    Integer getTPS() {
         return (Integer.parseInt(simulationConfiguration.getProperty("tps")));
     }
+
+   public void setTPS(String tps) {
+        simulationConfiguration.setProperty("tps",tps);
+    }
+
 
     double getAverageNetworkDelay() {
         return Double.parseDouble(simulationConfiguration.getProperty("av.network.delay"));

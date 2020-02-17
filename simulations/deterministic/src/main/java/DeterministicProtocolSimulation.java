@@ -5,6 +5,8 @@ import org.apache.log4j.Logger;
 import state.*;
 import utils.*;
 
+import java.util.ArrayList;
+
 public class DeterministicProtocolSimulation {
 
     private final static Logger LOGGER = Logger.getLogger(DeterministicProtocolSimulation.class.getName());
@@ -12,8 +14,10 @@ public class DeterministicProtocolSimulation {
     public static void main(String[] args) {
 
         long startTime = System.currentTimeMillis();
-
         int databaseSize = SimulationConfiguration.getInstance().getDatabaseSize();
+        int[] tpsRange = new int[]{ 100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000};
+
+        SimulationConfiguration.getInstance().setTPS("200");
 
         // init. database
         for (int i = 0; i < databaseSize; i++ ) {
@@ -24,7 +28,6 @@ public class DeterministicProtocolSimulation {
         // init. first arrival event
         double initEventTime = SimulationRandom.getInstance().generateNextArrival();
         GlobalEventListSingleton.getInstance().addEvent(new ArrivalEvent(initEventTime, EventType.ARRIVAL));
-
 
         LOGGER.debug("**********************************************************************");
         LOGGER.debug("**********************************************************************");
