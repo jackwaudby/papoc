@@ -1,12 +1,11 @@
-probabilistic <- function(N,p,f,lam,r,gam,eps){
+probabilistic <- function(N,p,f,lam,r,gam,eps,del){
   t=0
   n=matrix(rep(0,15),ncol=3,nrow=5)
   tr=matrix(rep(0,25),ncol=5,nrow=5)
   Nt=sum(N)
   n[,1]=(1-f)*N
   n[,2]=f*N
-  eps=eps
-  del=200
+  eps=eps   
   d=-log(eps)/del
   pn=(lam*p)/(N*2)
   q=rep(0,5)
@@ -45,6 +44,6 @@ probabilistic <- function(N,p,f,lam,r,gam,eps){
       n[i,1] = n[i,1] - 1
     }
   }
-  t = t/3600
+  t = t/(3600*24)
   return(t)
 }

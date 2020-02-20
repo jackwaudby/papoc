@@ -55,6 +55,8 @@ public class GlobalEdgeListSingleton {
         return edgeList;
     }
 
-
+    public void clearDatabase() {
+        edgeList.clear();
+    }
 
 }

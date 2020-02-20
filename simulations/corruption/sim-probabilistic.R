@@ -2,13 +2,14 @@
 remove(list=ls())
 
 ## load function
-source(file = "./approximations/func_probabilistic.R")
+source(file = "./simulations/corruption/func_probabilistic.R")
+source(file= "./simulations/corruption/calculate_delta.R")
 
 ## command line args
 args = commandArgs(trailingOnly=TRUE)
 eps = as.numeric(args[1])
 
-## arrival rate 
+## arrival rate
 lam = c(100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000)
 
 ## time until corruption
@@ -16,15 +17,6 @@ U = rep(0,length(lam))
 
 write(paste0(eps),file="./log/probabilistic.log",append=TRUE)
 write("lam U",file="./log/probabilistic.log",append=TRUE)
-
-# calculating d using eps and delta
-calc_d <- function(eps,del){
-     d=-log(eps)/del
-     return(d)
-}
-
-# calc_d(eps=0.01,del=200)
-# calc_d(eps=0.05,del=200)
 
 print(paste0("eps = ",args[1]))
 print(paste0("delta = ",calc_d(eps=eps,del=200)))
@@ -39,7 +31,8 @@ for (i in 1:length(lam)) {
         r=0.07,
         lam=lam[i],
         gam=0.1,
-        eps=eps)
+        eps=eps,
+        del=200)
     end_time = Sys.time()
     duration = end_time - start_time
     print(paste0(lam[i]," ",duration," ",U[i]))
@@ -48,17 +41,3 @@ for (i in 1:length(lam)) {
 
 results = cbind(lam,U)
 write.csv(results,paste0('./results/corruption/probabilistic_',gsub("\\.","\\_",eps),'.csv'), row.names=FALSE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

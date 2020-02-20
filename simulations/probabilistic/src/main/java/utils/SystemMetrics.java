@@ -4,30 +4,22 @@ public class SystemMetrics {
 
     private static final SystemMetrics instance = new SystemMetrics();
 
-    private int tps;
     private int arrivals;       // number of arrivals
-    private int collisions;     // aborts by delta mechanism
-    private double cumulativeLifetimes;
+    private int aborts;     // aborts by delta mechanism
     private int commits;
-    private long duration;
+    private long simulationDuration;
 
     private SystemMetrics() {
         arrivals = 0;
-        collisions = 0;
-        cumulativeLifetimes = 0;
+        aborts = 0;
         commits = 0;
-        tps = SimulationConfiguration.getInstance().getTPS();
+        simulationDuration = 0;
     }
 
     public void reset() {
         arrivals = 0;
-        collisions = 0;
-        cumulativeLifetimes = 0;
+        aborts = 0;
         commits = 0;
-    }
-
-    public int getTps() {
-        return tps;
     }
 
     public static SystemMetrics getInstance() {return instance; }
@@ -40,20 +32,16 @@ public class SystemMetrics {
         commits = commits + 1;
     }
 
-    public void incrementCollisions() {
-        collisions = collisions + 1;
-    }
-
-    public void addLifetime(double txnLifetime) {
-        cumulativeLifetimes = cumulativeLifetimes + txnLifetime;
+    public void incrementAborts() {
+        aborts = aborts + 1;
     }
 
     public int getArrivals() {
         return arrivals;
     }
 
-    public int getCollisions() {
-        return collisions;
+    public int getAborts() {
+        return aborts;
     }
 
     public int getCommits() {
@@ -61,23 +49,22 @@ public class SystemMetrics {
     }
 
     public int getCompleted() {
-        return collisions + commits;
+        return aborts + commits;
     }
 
-    public void setDuration(long duration) {
-        this.duration = duration;
+    public long getSimulationDuration() {
+        return simulationDuration;
     }
 
-    public double getAverageResponseTime() {
-        return cumulativeLifetimes / (collisions + commits);
+    public void setSimulationDuration(long simulationDuration) {
+        this.simulationDuration = simulationDuration;
     }
 
     @Override
     public String toString() {
-        return tps +
-                "," + arrivals +
-                "," + collisions +
+        return arrivals +
+                "," + aborts +
                 "," + commits +
-                "," + duration;
+                "," + simulationDuration;
     }
 }

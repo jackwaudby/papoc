@@ -8,8 +8,6 @@ import utils.SimulationConfiguration;
 import utils.SimulationRandom;
 import utils.SystemMetrics;
 
-import java.util.ArrayList;
-
 /**
  * The first update of a distributed edge.
  * Choose source or destination
@@ -48,9 +46,7 @@ public class Update1Action {
                 GlobalEventListSingleton.getInstance().addEvent(update2Event);
             } else {
                 LOGGER.debug("Transaction Aborted");
-                update1Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
-                SystemMetrics.getInstance().incrementCollisions();
-                SystemMetrics.getInstance().addLifetime(update1Event.getTransaction().getLifetime());
+                SystemMetrics.getInstance().incrementAborts();
                 // remove from active list
                 GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update1Event.getTransaction().getId());
             }
@@ -68,9 +64,7 @@ public class Update1Action {
                 GlobalEventListSingleton.getInstance().addEvent(update2Event);
             } else {
                 LOGGER.debug("Transaction Aborted");
-                update1Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
-                SystemMetrics.getInstance().incrementCollisions();
-                SystemMetrics.getInstance().addLifetime(update1Event.getTransaction().getLifetime());
+                SystemMetrics.getInstance().incrementAborts();
                 // remove from active list
                 GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update1Event.getTransaction().getId());
             }

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-Rscript approximations/sim-probabilistic.R $1
+Rscript simulations/corruption/sim-probabilistic.R $1

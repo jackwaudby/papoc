@@ -129,7 +129,7 @@
   keywords      = {cs.DB, cs.DC, cs.PF},
 }
 
-@Misc{ScaleFree,
+@Misc{S,
   title        = {Scale-Free Networks},
   howpublished = {\url{https://en.wikipedia.org/wiki/Scale-free_network}},
   note         = {Accessed:[19-02-20]},

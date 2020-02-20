@@ -1,5 +1,7 @@
 library(ggplot2)
 library(latex2exp)
+library(ggthemes)
+
 # load time to corruption data in 
 no_isolation = read.csv("../../results/corruption/no_isolation.csv")
 type = rep(1,14)
@@ -23,27 +25,17 @@ df = rbind(no_isolation,e005, e01,e001)
 df$type = as.factor(df$type)
 
 
-png("../paper/images/corruption_comparison.png")
+png("../../paper/images/corruption_comparison.png")
 
 
 
 p=ggplot(data=df, aes(x=lam,y=U,linetype=type,color=type)) +
     geom_line() +
-    scale_linetype_discrete(name="Type: ",labels=unname(TeX(c(
-      '$\\epsilon = 100%$',
-      "$\\epsilon$ = 10%",
-      "$\\epsilon$ = 5%",
-      "$\\epsilon$ = 1%")))) +
-    scale_color_discrete(name="Type: ",labels=unname(TeX(c(
-      '$\\epsilon = 100%$',
-      "$\\epsilon$ = 10%",
-      "$\\epsilon$ = 5%",
-      "$\\epsilon$ = 1%")))) +
-    scale_x_continuous(name=unname(TeX(c("Read-Write Transactions per second (10% TPS)"))),
-                       breaks=seq(100,1000,100),limits=c(0,1000)) +
-    scale_y_continuous(name=unname(TeX(c("Time (in hours) for 10% DB Corruption"))),
-                       breaks=seq(0,5000,500)) +
-    theme(legend.text.align = 0)
+    scale_linetype_discrete(name="Delta: ",labels=unname(TeX(c("2.3s","1.5s","1.2s","0s")))) +
+    scale_color_discrete(name="Delta: ",labels=unname(TeX(c("2.3s","1.5s","1.2s","0s")))) +
+    scale_x_continuous(name="TPS",breaks=seq(0,2000,200),limits=c(0,2000)) +
+    scale_y_continuous(name="U",breaks=seq(0,5000,500)) + 
+    theme_few()
 
 p
 

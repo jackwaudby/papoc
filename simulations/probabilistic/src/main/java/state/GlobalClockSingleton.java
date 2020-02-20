@@ -1,5 +1,8 @@
 package state;
 
+/**
+ * This class represents the simulation's clock.
+ */
 public class GlobalClockSingleton {
 
     private static final GlobalClockSingleton instance = new GlobalClockSingleton();
@@ -19,5 +22,9 @@ public class GlobalClockSingleton {
 
     public double getGlobalClock() {
         return globalClock;
+    }
+
+    public void resetClock() {
+        globalClock = 0;
     }
 }

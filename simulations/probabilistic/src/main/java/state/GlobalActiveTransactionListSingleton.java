@@ -3,6 +3,9 @@ package state;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+/**
+ * This class maintains a list of all transaction's active during the simulation
+ */
 public class GlobalActiveTransactionListSingleton {
 
     private static final GlobalActiveTransactionListSingleton instance = new GlobalActiveTransactionListSingleton();
@@ -26,7 +29,4 @@ public class GlobalActiveTransactionListSingleton {
 
     }
 
-    public ArrayList<Transaction> getActiveTransactionList() {
-        return activeTransactionList;
-    }
 }

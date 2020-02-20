@@ -1,8 +1,5 @@
 package action;
 
-import event.AbortCleanUpEvent;
-import event.EventType;
-import event.Update1Event;
 import event.Update2Event;
 import org.apache.log4j.Logger;
 import state.*;
@@ -36,17 +33,13 @@ public class Update2Action {
                 distributedEdge.setSourceLock(update2Event.getEventTime() + delta);
                 if (transaction.getUpdatesCompleted() == transaction.getUpdates()) { // finished updating
                     LOGGER.debug("Transaction Successful");
-                    transaction.setEndTime(update2Event.getEventTime()); // set end time
                     SystemMetrics.getInstance().incrementCommitted();
-                    SystemMetrics.getInstance().addLifetime(transaction.getLifetime());
                     GlobalActiveTransactionListSingleton.getInstance().removeTransaction(transaction.getId());
                 }
             } else {
 
                 LOGGER.debug("Transaction Aborted");
-                update2Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
-                SystemMetrics.getInstance().incrementCollisions();
-                SystemMetrics.getInstance().addLifetime(update2Event.getTransaction().getLifetime());
+                SystemMetrics.getInstance().incrementAborts();
                 // remove from active list
                 GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update2Event.getTransaction().getId());
 
@@ -60,18 +53,14 @@ public class Update2Action {
                 distributedEdge.setDestinationLock(update2Event.getEventTime() + delta);
                 if (transaction.getUpdatesCompleted() == transaction.getUpdates()) { // finished updating
                     LOGGER.debug("Transaction Successful");
-                    transaction.setEndTime(update2Event.getEventTime()); // set end time
                     SystemMetrics.getInstance().incrementCommitted();
-                    SystemMetrics.getInstance().addLifetime(transaction.getLifetime());
                     GlobalActiveTransactionListSingleton.getInstance().removeTransaction(transaction.getId());
 
                 }
             } else {
 
                 LOGGER.debug("Transaction Aborted");
-                update2Event.getTransaction().setEndTime(GlobalClockSingleton.getInstance().getGlobalClock());
-                SystemMetrics.getInstance().incrementCollisions();
-                SystemMetrics.getInstance().addLifetime(update2Event.getTransaction().getLifetime());
+                SystemMetrics.getInstance().incrementAborts();
                 // remove from active list
                 GlobalActiveTransactionListSingleton.getInstance().removeTransaction(update2Event.getTransaction().getId());
 

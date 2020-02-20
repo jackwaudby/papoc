@@ -31,8 +31,12 @@ public class SimulationConfiguration {
         }
     }
 
-     Integer getTPS() {
+    public Integer getTPS() {
         return (Integer.parseInt(simulationConfiguration.getProperty("tps")));
+    }
+
+    public void setTPS(long TPS) {
+        simulationConfiguration.setProperty("tps", String.valueOf(TPS));
     }
 
     double getAverageNetworkDelay() {
@@ -41,10 +45,6 @@ public class SimulationConfiguration {
 
     public int getDatabaseSize() {
         return Integer.parseInt(simulationConfiguration.getProperty("database.size"));
-    }
-
-    double getAverageArbiterServiceTime() {
-        return Double.parseDouble(simulationConfiguration.getProperty("arbiter.service"));
     }
 
     public int getTxnLimit(){
@@ -73,10 +73,6 @@ public class SimulationConfiguration {
 
     public double getDelta(){
         return Double.parseDouble(simulationConfiguration.getProperty("delta"));
-    }
-
-    public boolean getUseArbiter() {
-        return Boolean.parseBoolean(simulationConfiguration.getProperty("use.arbiter"));
     }
 
     public boolean saveResults() {

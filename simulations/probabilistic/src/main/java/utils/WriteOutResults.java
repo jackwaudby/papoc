@@ -9,28 +9,41 @@ import java.io.IOException;
  */
 public class WriteOutResults {
 
-    public static void writeOutResults() {
+//    public static void fileHeader() {
+//
+//        String[] headers = {"tps","arrivals","collisions","commits","duration"};
+//
+//        StringBuilder headerStringBuilder = new StringBuilder();
+//        for(String header : headers){
+//            headerStringBuilder.append(header).append(",");
+//        }
+//
+//        String headerString = headerStringBuilder.toString();
+//        if( headerString.length() > 0 ) // remove trailing comma
+//            headerString = headerString.substring(0, headerString.length() - 1);
+//
+//        writeOut(headerString);
+//    }
 
-        String[] headers = {"tps","arrivals","collisions","commits","duration"};
+    public static void writeOut(String[] string) {
 
         StringBuilder headerStringBuilder = new StringBuilder();
-        for(String header : headers){
+        for(String header : string){
             headerStringBuilder.append(header).append(",");
         }
+
         String headerString = headerStringBuilder.toString();
         if( headerString.length() > 0 ) // remove trailing comma
             headerString = headerString.substring(0, headerString.length() - 1);
 
-        String results = SystemMetrics.getInstance().toString();
 
         BufferedWriter outputStream = null;
         FileWriter fileWriter;
+        double delta = SimulationConfiguration.getInstance().getDelta();
         try {
-            fileWriter = new FileWriter("./results/probabilistic_1000.csv");
+            fileWriter = new FileWriter("./results/probabilistic/probabilistic_" + delta + ".csv",true);
             outputStream = new BufferedWriter(fileWriter);
             outputStream.append(headerString);
-            outputStream.append("\n");
-            outputStream.append(results);
             outputStream.append("\n");
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-Rscript approximations/sim-no-isolation.R
+Rscript simulations/corruption/sim-no-isolation.R

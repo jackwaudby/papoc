@@ -5,9 +5,8 @@ import org.apache.log4j.Logger;
 import state.*;
 import utils.*;
 
-// TODO: strip out arbiter
-// TODO: strip out unused config
-// TODO: add mechanism
+
+
 
 // txn arrives, updates 4 edges
 // for each edge
@@ -24,62 +23,84 @@ public class ProbabilisticProtocolSimulation {
 
     public static void main(String[] args) {
 
-        long startTime = System.currentTimeMillis();
+        int[] tpsRange = {100000};
+
+        String[] headers = {"tps","arrivals","collisions","commits","duration"};
+
+        WriteOutResults.writeOut(headers);
+        for (int j = 0; j<tpsRange.length; j++) {
+
+            //clear database
+            //clear event list
+
+            long startTime = System.currentTimeMillis();
+
+            int databaseSize = SimulationConfiguration.getInstance().getDatabaseSize();
+
+            SimulationConfiguration.getInstance().setTPS(tpsRange[j]);
+
+            // initialise database
+            for (int i = 0; i < databaseSize; i++) {
+                DistributedEdge e = new DistributedEdge(i);
+                GlobalEdgeListSingleton.getInstance().addEdge(e);
+            }
+
+            // init. first arrival event
+            double initEventTime = SimulationRandom.getInstance().generateNextArrival();
+            GlobalEventListSingleton.getInstance().addEvent(new ArrivalEvent(initEventTime, EventType.ARRIVAL));
+
+            LOGGER.debug("**********************************************************************");
+            LOGGER.debug("**********************************************************************");
+            LOGGER.debug("Initial State");
+            LOGGER.debug("**********************************************************************");
+            LOGGER.debug("Event List: " + GlobalEventListSingleton.getInstance().getEventList());
+            LOGGER.debug("**********************************************************************");
+            LOGGER.debug("**********************************************************************");
+            LOGGER.debug(" ");
+
+            runSimulation();
+
+            System.out.println(" ");
+            LOGGER.info("TPS: " + SimulationConfiguration.getInstance().getTPS());
+            LOGGER.info("Arrivals: " + SystemMetrics.getInstance().getArrivals());
+            LOGGER.info("Completed: " + SystemMetrics.getInstance().getCompleted());
+            LOGGER.info("Collisions: " + SystemMetrics.getInstance().getAborts());
+            LOGGER.info("Total Commits: " + SystemMetrics.getInstance().getCommits());
+            System.out.println(" ");
+
+            long endTime = System.currentTimeMillis();
+
+            long duration = (endTime - startTime) / 1000 / 60;
+
+            SystemMetrics.getInstance().setSimulationDuration(duration);
+
+            String[] result = {
+                    String.valueOf(SimulationConfiguration.getInstance().getTPS()),
+                    String.valueOf(SystemMetrics.getInstance().getArrivals()),
+                    String.valueOf(SystemMetrics.getInstance().getAborts()),
+                    String.valueOf(SystemMetrics.getInstance().getCommits()),
+                    String.valueOf(SystemMetrics.getInstance().getSimulationDuration())};
 
 
-        int databaseSize = SimulationConfiguration.getInstance().getDatabaseSize();
+            if (SimulationConfiguration.getInstance().saveResults()) {
+                WriteOutResults.writeOut(result); // write out results
+            }
 
-        // init. database
-        for (int i = 0; i < databaseSize; i++ ) {
-            DistributedEdge e = new DistributedEdge(i);
-            GlobalEdgeListSingleton.getInstance().addEdge(e);
+            // clear simulation
+            GlobalEdgeListSingleton.getInstance().clearDatabase();
+            GlobalClockSingleton.getInstance().resetClock();
+            GlobalEventListSingleton.getInstance().clearEvents();
+            SystemMetrics.getInstance().reset();
         }
-
-        // init. first arrival event
-        double initEventTime = SimulationRandom.getInstance().generateNextArrival();
-        GlobalEventListSingleton.getInstance().addEvent(new ArrivalEvent(initEventTime, EventType.ARRIVAL));
-
-        LOGGER.debug("**********************************************************************");
-        LOGGER.debug("**********************************************************************");
-        LOGGER.debug("Initial State");
-        LOGGER.debug("**********************************************************************");
-        LOGGER.debug("Event List: " + GlobalEventListSingleton.getInstance().getEventList());
-        LOGGER.debug("**********************************************************************");
-        LOGGER.debug("**********************************************************************");
-        LOGGER.debug(" ");
-
-        runSimulation();
-
-        LOGGER.info("TPS: " + SystemMetrics.getInstance().getTps());
-        LOGGER.info("Arrivals: " + SystemMetrics.getInstance().getArrivals());
-        LOGGER.info("Completed: " + SystemMetrics.getInstance().getCompleted());
-        LOGGER.info("Collisions: " + SystemMetrics.getInstance().getCollisions());
-        LOGGER.info("Total Commits: " + SystemMetrics.getInstance().getCommits());
-        LOGGER.info("Av Resp. Time: " +  SystemMetrics.getInstance().getAverageResponseTime());
-
-        long endTime = System.currentTimeMillis();
-
-        long duration = (endTime - startTime)/1000/60;
-
-        SystemMetrics.getInstance().setDuration(duration);
-
-        if (SimulationConfiguration.getInstance().saveResults()) {
-            WriteOutResults.writeOutResults(); // write out results
-        }
-
-
     }
 
     private static void runSimulation() {
 
-        int txnLimit = SimulationConfiguration.getInstance().getTxnLimit();
-
-
-        while (SystemMetrics.getInstance().getCompleted() < txnLimit) {
+        while (SystemMetrics.getInstance().getCompleted() < 1000000) {
 
             if (SystemMetrics.getInstance().getArrivals() % 10 == 0){
                 System.out.print("Completed: " + SystemMetrics.getInstance().getCompleted() +
-                        " Aborts: " + SystemMetrics.getInstance().getCollisions() + "\r");
+                        " Aborts: " + SystemMetrics.getInstance().getAborts() + "\r");
             }
 
             AbstractEvent nextEvent = GlobalEventListSingleton.getInstance().getNextEvent();   // get next event

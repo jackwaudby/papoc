@@ -1,4 +1,4 @@
-\documentclass[sigplan,screen]{acmart}
+\documentclass[sigplan,10pt]{acmart}
 
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -6,6 +6,24 @@
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
 \usepackage[ruled,vlined]{algorithm2e}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{fancyvrb}
+\usepackage{xcolor}
+\usepackage{breqn}
+
+\usetikzlibrary{decorations.pathmorphing}
+\tikzstyle{vertex} = [circle, minimum width=10pt,draw,inner sep=0pt]
+\tikzstyle{vertex2} = [circle, minimum width=40pt,draw,inner sep=0pt]
+\tikzstyle{server} = [rectangle, rounded corners,minimum width=2cm,minimum height=2.5cm,draw=black]
+\tikzstyle{local} = [thick,->,>=stealth]
+\tikzstyle{dist} = [thick,dashed,->,>=stealth]
+\tikzstyle{node}=[circle,draw,radius=0.3, align=center]
+
+\definecolor{grey}{rgb}{0.52, 0.52, 0.51}
+\definecolor{red}{rgb}{0.7, 0.11, 0.11}
+\definecolor{blue}{rgb}{0.0, 0.0, 0.55}
+\definecolor{green}{rgb}{0.0, 0.42, 0.24}
 
 %% Rights management information.  This information is sent to you
 %% when you complete the rights form.  These commands have SAMPLE
@@ -19,8 +37,7 @@
 
 %% These commands are for a PROCEEDINGS abstract or paper.
 \acmConference[PaPoC '20]{PaPoC '20: Proceedings of the 7th Workshop on Principles and Practice of Consistency for Distributed Data}{April 27, 2020}{Heraklion, Crete, Greece}
-\acmBooktitle{PaPoC '20: Proceedings of the 7th Workshop on Principles and Practice of Consistency for Distributed Data,
-  April 27, 2020, Heraklion, Crete, Greece}
+\acmBooktitle{PaPoC '20: Proceedings of the 7th Workshop on Principles and Practice of Consistency for Distributed Data, April 27, 2020, Heraklion, Crete, Greece}
 \acmPrice{15.00}
 % \acmISBN{978-1-4503-XXXX-X/18/06}
 
@@ -98,20 +115,10 @@
   \postcode{SE1 0LH}}
 
 
-
-%%
-%% By default, the full list of authors will be used in the page
-%% headers. Often, this list is too long, and will overlap
-%% other information printed in the page headers. This command allows
-%% the author to define a more concise list
-%% of authors' names for this purpose.
 \renewcommand{\shortauthors}{Ezhilchelvan, et al.}
 
 \begin{abstract}
-
-  In this paper we formalize the notion of \textit{reciprocal consistency}, a important feature specific to graph databases. If reciprocal consistency is not enforced during transaction processing, a scale-free distributed graph database can become semantically corrupt within a short time period relative to database lifetime. Reciprocal consistency can be maintained as a part of enforcing any of several known strong isolation guarantees (e.g., snapshot isolation) incurring well established performance costs. However, in practice systems are often deployed with weaker consistency, this paper describes two protocols that provide only reciprocal consistency semantics. Catering for users that are interested only in ensuring reciprocal consistency to preserve the integrity of a distributed graph database. Both protocols presented are compared and contrasted using metrics such as number of aborts per second.
-
-
+  In this paper the notion of \textit{reciprocal consistency}, a important feature specific to graph databases, is formalized. If reciprocal consistency is not enforced during transaction processing, a distributed graph database can become operationally corrupt within a short time period relative to database lifetime. Reciprocal consistency can be maintained as a part of enforcing any of several known strong isolation guarantees (e.g., Snapshot Isolation) incurring well established performance costs. However, in practice systems are often deployed with weaker consistency, this paper describes a protocol that guarantees only reciprocal consistency. Catering for application programmers that are interested only in ensuring reciprocal consistency to preserve the integrity of a distributed graph database. The protocol is probabilistic ensuring reciprocal consistency provided certain conditions hold. The rate of corruption when these conditions no longer hold is investigated.
 \end{abstract}
 
 % \begin{CCSXML}
@@ -153,566 +160,370 @@
 \maketitle
 
 \section{Introduction}
+\label{sec:introduction}
 
-Recent years have seen a proliferation in the use of graph technologies \cite{Besta2019}. Application areas are wide reaching from healthcare, social networks and fraud detection \cite{Eifrem2016}. Graph databases model data as a \textit{labeled property graph}, vertices represent entities and edges represent the relationship between entities; properties can be stored on both vertices and edges \cite{Robinson2015}.
+Recent years have seen a proliferation in the use of graph processing technologies \cite{Besta2019}. Application areas are wide reaching from healthcare, to social networks and fraud detection \cite{Eifrem2016}. Graph databases model data as a \textit{property graph} \cite{Robinson2015}, vertices represent entities and edges represent the relationship between entities. In addition, properties can be stored on both vertices and edges.
 
-In practice graphs can be extremely large \cite{Sahu2017}, exceeding the storage capacity of a single-node database. An approach to storing large graphs is to partition graph data over several machines in a cluster. Moving from a single-node database to one partitioned and distributed across servers introduces several interesting problems regarding data consistency. Graphs place a high demand on the underlying database and maintaining structural integrity across partitions - called \textit{reciprocal consistency} - in a distributed graph database is non-trivial.
+In practice graphs can be extremely large, sometimes in the magnitude of 100 billion edges \cite{Sahu2017}, exceeding the storage capacity of a single-node database management system (DBMS). An approach to storing large graphs is to partition graph data over several machines in a cluster. Moving from a single-node DBMS to one partitioned and distributed across servers introduces several interesting problems regarding data consistency. Graphs place a high demand on the underlying database and maintaining structural integrity across partitions - called \textit{reciprocal consistency} - in a distributed graph database is non-trivial.
 
-In order to preserve reciprocal consistency, one could implement a heavyweight coordination protocol across partitions providing Serializability or Snapshot Isolation, which have associated performance costs. To avoid these costs database managements systems (DBMSs) provide several weak isolation models \cite{Berenson1995}. In addition, there are a number of systems that eschew transactional guarantees altogether, typically offering eventual consistency \cite{Bailis2013}. Recent work \cite{Ezhilchelvan2018} investigated how violation of reciprocal consistency can occur under eventual consistency, leading to semantic corruption at alarmingly rates. The contribution of this paper is the description of two protocols that provide only reciprocal consistency, a consistency model between the known extremes that provides suitable performance. The performance of each protocol is measured using metrics such as aborts per second.
+In order to preserve reciprocal consistency, one could implement a heavyweight coordination protocol across partitions providing Serializability or Snapshot Isolation, which have associated performance costs. To avoid these costs DBMSs provide application developers with the option of several weaker isolation models \cite{Berenson1995}. In addition, there are a number of systems that eschew transactional guarantees altogether, typically offering eventual consistency \cite{Bailis2013}, in order to achieve higher performance.
 
+Recent work \cite{Ezhilchelvan2018} and \cite{Webber2019} investigated the use of eventually consistent semantics in a distributed graph database and highlighted how violation of reciprocal consistency can occur under weak isolation. Also, due to the \emph{Scale-Free} \cite{ScaleFree} nature of some graphs corruption can propagate through the database at alarmingly rates.
+
+The contribution of this paper is the description of a probabilistic protocol that focuses only on ensuring reciprocal consistency in order to preserve structural integrity of a partitioned graph database in a transaction processing context. The protocol's impact on the rate of corruption and its performance is evaluated and discussed.
+
+The key finding is whilst initial corruption of clean records is a rare event, due to the scale-free topology corruption propagates alarmingly quick even for modest transaction arrival rates. This motivates the use of deterministic reciprocal consistency protocols or the use of protocols with stronger isolation guarantees, which subsume reciprocal consistency.
 
 \section{Reciprocal Consistency}
 \label{sec:recipr-cons}
 
+In the property graph data model edges have direction, there is a \emph{source} and a \emph{destination} vertex. In the storage layer, edge information is stored with \textbf{both} the source and destination vertices. This facilitates bi-directional edge traversal and allows for better query performance.
 
-In the labeled property graph data model edges have direction, there is a \textit{source} and a \textit{destination} vertex. Edge information is stored with \textbf{both} the source and destination vertices. This facilitates bi-directional edge traversal and allows for better query performance.
+A common approach to storing graphs (arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}) is for records to represent vertices containing both data values and an adjacency list containing edge \emph{pointers} to other vertices, Figure \ref{adj-list}. In this representation an edge has \emph{reciprocal} entries in the adjacency lists of the vertices the edge connects. A query reading either the source or destination vertices should be able to reify the edge correctly, returning consistent results. When the adjacency lists for vertices are mutually compatible like this, they are said to be \emph{reciprocally consistent}.
 
-A common approach to storing graphs (arising from JanusGraph \cite{janusgraph} and TitanDB [REF]) is for records to represent vertices containing both data values and an adjacency list containing edge ``pointers'' to other vertices. In this representation an edge has ``reciprocal'' entries in the adjacency lists of the vertices the edge connects Figure \ref{adj-list}. A query reading either the source or destination vertices should be able to reify the edge correctly, returning consistent results. When the adjacency lists for vertices are mutually compatible like this, we say they are \emph{reciprocally consistent}.
-
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{./images/janusgraph-adj-list}
-  \caption{Graph representation [REF].}
+  \caption{Vertex records containing data values and adjacency lists \cite{janusgraph}.}
   \Description{Graph representation.}
   \label{adj-list}
 \end{figure}
 
-Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit. It is expressed using vertices A and B, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from A (source) to B (destination). Adjacency lists of both A and B record information about that edge and this information is mutually reciprocal (or inverse) of each other: A's list will indicate `A \textit{wrote} B' while B's will have `B \textit{written} by A'. Thus, a query `list all titles by the author who wrote The Hobbit' can be answered by landing at B and then traversing to A; even though the edge \texttt{(A \{name:`Tolkien'\})-[:WROTE]->(B \{title:`The Hobbit'\})} is a directed edge at model level abstraction.
+Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit. It is expressed using vertices \emph{a} and \emph{b}, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from \emph{a} (source) to \emph{b} (destination).
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person}), (b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{CREATE} (a)-[w:\textcolor{green}{WROTE}]->(b)
+\end{Verbatim}
+
+Adjacency lists of both \emph{a} and \emph{b} record information about the edge and this information is mutually reciprocal (or inverse) of each other: \emph{a}'s list will indicate `\emph{a} \emph{wrote} \emph{b}' while \emph{b}'s will have `\emph{b} \emph{written} by \emph{a}'. Thus, a query `list all titles by the author who wrote The Hobbit' can be answered by landing at \emph{b} and then traversing to \emph{a}; even though the edge is a directed edge at model level abstraction.
 
 \section{Distributed Graph Databases}
 
-A distributed graph database employs a shared-nothing architecture, partitioning a graph between a number of loosely cooperating servers. Graph partitioning is non-trivial and a common approach is to use a $k$-balanced edge cut \cite{Huang2016}. The objective of such an approach is to minimize the proportion of edge that span partitions in a manner that balances the distribution of vertices to partitions. Intra-partition edges are referred to as \textit{local edges} and inter-partition edges are referred to as \textit{distributed edges}, [FIG]. The proportion of distributed edges is highly data dependent. However, the number of such edges is always non-negligible ranging from 15-30\%.
+A distributed graph database employs a shared-nothing architecture, partitioning a graph between a number of loosely cooperating servers. Graph partitioning is non-trivial and a common approach is to use a $k$-balanced edge cut \cite{Huang2016}. The objective of such an approach is to minimize the proportion of edges that span partitions in a manner that balances the distribution of vertices to partitions. Intra-partition edges are referred to as \textit{local edges} and inter-partition edges are referred to as \textit{distributed edges}, Figure \ref{dist-graph}. The proportion of distributed edges is highly data dependent. However, the number of such edges is always non-negligible ranging from 25-75\% \cite{Huang2016}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering
-  \includegraphics[width=\linewidth]{./images/dist-graph}
-  \caption{A partitioned graph assigned to servers in a cluster. Some edges are local and some distributed}
+    \begin{tikzpicture}[node distance=1cm]
+
+    \node (s1) [server,label=$S_1$] {};
+    \node (s2) [server, right of=s1,xshift=1.5cm,yshift=1cm,label=$S_2$] {};
+    \node (s3) [server, right of=s1,xshift=4cm,label=$S_3$] {};
+
+    \node (v1) [vertex,xshift=-0.5cm,yshift=-0.8cm] {};
+    \node (v2) [vertex, above of=v1,xshift=-0.1cm,yshift=0.7cm] {};
+    \node (v3) [vertex, above of=v1,xshift=0.6cm] {};
+    \node (v4) [vertex, below right of=v3,xshift=-0.5cm,yshift=-0.25cm] {};
+    \node (v5) [vertex, above right of=v3,xshift=-0.1cm,yshift=-0.2cm] {};
+    \node (v6) [vertex, right of=v5,xshift=0.5cm,yshift=0.8cm] {};
+    \node (v7) [vertex, below of=v6, xshift=-0.15cm,yshift=0cm] {};
+    \node (v8) [vertex, right of=v4, yshift=-0.1cm,xshift=4cm] {};
+    \node (v9) [vertex, above of=v8,xshift=-0.4cm,yshift=-0.5cm] {};
+    \node (v10) [vertex, above of=v9,xshift=-1.7cm,yshift=-0.33cm] {};
+    \node (v11) [vertex, right of=v9,yshift=0.5cm,xshift=-0.3cm] {};
+    \node (v12) [vertex, above of=v11,yshift=-0.3cm,xshift=-1cm] {};
+    \node (v13) [vertex, above right of=v6,yshift=-0.4cm,xshift=-0.1cm] {};
+    \draw [local] (v2) -- (v1);
+    \draw [local] (v1) -- (v3);
+    \draw [local] (v3) -- (v2);
+    \draw [local] (v2) -- (v5);
+    \draw [local] (v1) -- (v4);
+    \draw [local] (v5) -- (v4);
+    \draw [dist] (v5) -- (v6);
+    \draw [dist] (v4) -- (v7);
+    \draw [dist] (v8) -- (v4);
+    \draw [local] (v8) -- (v9);
+    \draw [local] (v9) -- (v11);
+    \draw [local] (v10) -- (v7);
+    \draw [dist] (v10) -- (v12);
+    \draw [dist] (v12) -- (v13);
+    \draw [local] (v10) -- (v6);
+    \draw [dist] (v10) -- (v11);
+    \draw [local] (v13) -- (v10);
+    \draw [local] (v11) -- (v12);
+    \end{tikzpicture}
+  \caption{A graph partitioned across $k=3$ servers in a cluster. Dashed lines represent distributed edges and solid lines represent local edges.}
   \Description{Graph representation.}
   \label{dist-graph}
 \end{figure}
 
-In a distributed graph database, adjacency lists can contain ``pointers'' to edges on remote servers. This makes maintaining distributed edge reciprocal consistency more challenging - especially given a common architecture employed by contemporary distributed graph databases. Often they use an existing eventually consistent database (e.g. Apache Cassandra [REF]) to store data, which has been adapted with a programmatic API or query language expressed in terms of edges and vertices along with some gluecode to bind that interface to the underlying database. Superficially, opting for this design appears to be a good choice: the user has the modeling convenience of graphs with the operational characteristics from the underlying database. However, the problem with this design is the (lack of) transactional semantics are inherited from the underlying store. For example, Apache Cassandra provides no way of preventing updates from mutual interference in its normal multi-partition use case. Earlier work displayed how weak isolation undermines distributed edge reciprocal consistency, causing irreversible corruption that spreads at alarmingly rates \cite{Ezhilchelvan2018}.
+In a distributed graph database, adjacency lists can contain pointers to edges on remote servers. This makes maintaining distributed edge reciprocal consistency more challenging - especially given a common architecture employed by contemporary distributed graph databases. Often they use an existing eventually consistent database (e.g. Apache Cassandra \cite{Cassandra}) to store data, which has been adapted with a programmatic API or query language expressed in terms of edges and vertices along with some gluecode to bind that interface to the underlying database. Superficially, opting for this design appears to be a good choice: the user has the modeling convenience of graphs with the operational characteristics from the underlying database. However, the problem with this design is the (lack of) transactional semantics are inherited from the underlying store. For example, Apache Cassandra provides no way of preventing updates from mutual interference in its normal multi-partition use case. Earlier work displayed how weak isolation undermines distributed edge reciprocal consistency, causing irreversible corruption that spreads at alarmingly rates \cite{Ezhilchelvan2018}, \cite{Webber2019}.
 
-Of course, reciprocal consistency can be maintained as a part of enforcing any of several known strong isolation guarantees (e.g., snapshot isolation) but that incurs a performance cost if users are interested only in ensuring reciprocal consistency to preserve the integrity of a distributed database. This paper addresses that challenge.
+\section{Database Corruption}
+\label{sec:db-corruption}
 
+\begin{figure*}[ht]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \draw [thick] (1.3,3) -- (1.7,3);
+      \draw [thick,<-,>=stealth] (1.5,0) -- (1.5,3) node[anchor=south] {$S_i$};
+      \draw [thick] (3.3,3) -- (3.7,3);
+      \draw [thick,<-,>=stealth] (3.5,0) -- (3.5,3) node[anchor=south] {$S_j$};
+      \draw [thick,<-,>=stealth] (1.5,1.5) -- (3.5,2.5)  node[right] {$T_y$};
+      \draw [thick,->,>=stealth] (1.5,2.2) node[left] {$T_x$} -- (3.5,1);
+    \end{tikzpicture}
+    \caption{}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \draw [thick] (5.3,3) -- (5.7,3);
+      \draw [thick,<-,>=stealth] (5.5,0) -- (5.5,3) node[anchor=south] {$S_i$};
+      \draw [thick] (7.3,3) -- (7.7,3);
+      \draw [thick,<-,>=stealth] (7.5,0) -- (7.5,3) node[anchor=south] {$S_j$};
+      \draw [thick,<-,>=stealth] (5.5,1) -- (7.5,2)  node[right] {$T_y$};
+      \draw [thick,->,>=stealth] (5.5,2.7) node[left] {$T_x$} -- (7.5,1.2);
+    \end{tikzpicture}
+    \caption{}
+  \end{subfigure}%
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \draw [thick] (9.3,3) -- (9.7,3);
+      \draw [thick,<-,>=stealth] (9.5,0) -- (9.5,3) node[anchor=south] {$S_i$};
+      \draw [thick] (11.3,3) -- (11.7,3);
+      \draw [thick,<-,>=stealth] (11.5,0) -- (11.5,3) node[anchor=south] {$S_j$};
+      \draw [thick,->,>=stealth] (9.5,2.5)  node[left] {$T_x$} -- (11.5,1) ;
+      \draw [thick,->,>=stealth] (9.5,2) node[left] {$T_y$} -- (11.5,1.7);
+    \end{tikzpicture}
+    \caption{}
+  \end{subfigure}%
+  \caption{\emph{Conflict Scenarios.} Possible interleavings between concurrent writes to a distributed edge spanning servers $S_i$ and $S_j$ by transactions $T_x$ and $T_y$. In (a) $T_y$ begins writing to the distributed edge before $T_x$, in (b) the converse is true, else they are equivalent. In (c) both transactions begin writing at the same server but overlap in the network and arrive out-of-order.}
+  \label{conf-scen}
+\end{figure*}
 
-\section{Preserving Reciprocal Consistency}
+We now explain how corruption occurs under weak isolation and propagates.
 
+When a given transaction writes a distributed edge it performs two distinct sub-operations, writing reciprocal information at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively.
 
-A single logical write to a distributed edge consists of two sub-operations, updating reciprocal information at the source and the destination vertices. The order in which sub-operations take place are not constrained. For example, when updating an edge between A and B it is equally likely to update A then B as it is to update B then A. Without sufficient isolation, concurrent updates can interleave in a manner that violates reciprocal consistency [FIG], such an edge is known as a \emph{half-corrupted} edge. Figure [FIG] outlines the interleavings that produce half-corrupted edges.
+In a distributed graph database operating with weak isolation, transactions that concurrently modify the same distributed edge can \emph{conflict}. That is transaction's sub-operations interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated. For such edges there exists a correct and a incorrect entry. Figure \ref{conf-scen} outlines the conflict scenarios that produce half-corrupted edges. Note, the order in which sub-operations take place are not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}.
 
-% transactions consists of reads/writes
+If subsequent transactions read the incorrect entry and write further edges, \emph{semantic corruption} has been introduced into the database. Further semantic corruption spreads by the same mechanism. A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use.
 
-\subsection{\emph{Delta} Protocol}
+To illustrate this, consider two transactions $T_x$ and $T_y$. $T_x$ deletes the \emph{wrote} edge and $T_y$ appends a property \emph{year}:
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{grey}{// Tx}
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person})-[w:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{DELETE} w
 
-In order to prevent all interleaving in Figure [FIG] the \emph{Delta} protocol adopts a probabilistic approach. It is assumed there is a known $\Delta$, that reflects the bound on server communication delays, with a probability $(1-\epsilon)$ that $\Delta$ is violated. Informally, the protocol consists of two-phases. In phase 1 all writes by sub-operations are temporary and a sub-operation is allowed to proceed provided there is no other temporary sub-operation preceding it within $\Delta$; measured as per the local clock time. If the attempt does not succeed, the transaction aborts, aborting any and every previous tentative write that it may have successfully completed. In phase 2, a transaction that succeeds at all its tentative write attempts, decides to commit when it completes its graph traversal; the transaction commits once all its tentative writes are committed. This protocol avoids all conflict scenarios in Figure [FIG] provided the bound is not violated. If the bound is violate corruption and its spread can still occur, Figure [FIG]. There exists an interesting relationship between $\Delta$, the proportion of aborts and the spread of corruption.
+\textcolor{grey}{// Ty}
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person})-[w:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{SET} w.\textcolor{red}{year} = 1937
+\end{Verbatim}
+Any interleaving in Figure \ref{conf-scen} will result in the half-corrupted edge displayed in Figure \ref{half-corrupted}.
 
-\begin{algorithm}
-  \SetAlgoLined
-  \eIf{sub-operation=1}{
-    \eIf{$\Delta = \emptyset$}{
-      Perform tentative write operation\;
-      Set $\Delta$\;
-      Issue sub-operation-2\;
-    }{
-      Abort transaction\;
-    }
-  }{
-    \eIf{$\Delta = \emptyset$}{
-      Perform tentative write operation\;
-      Set $\Delta$\;
-      Continue transaction\;
-    }{
-      Abort transaction\;
-    }
-  }
-    \caption{\emph{Delta} Protocol Phase 1}
-\end{algorithm}
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[node distance=2cm]
+    \node (v1) [vertex2,xshift=0cm,yshift=0cm] {\small{\texttt{a:\textcolor{green}{Person}}}};
 
-\section{Evaluation \& Results}
+    \node (v2) [vertex2,xshift=5cm,yshift=0cm] {\small{\texttt{b:\textcolor{green}{Book}}}};
 
-% Spread Corruption
+    \node [below of=v1,yshift=1cm] {\small{\texttt{\textcolor{red}{name}:Tolkien}}};
+        \node [below of=v2,yshift=1cm] {\small{\texttt{\textcolor{red}{title}:The Hobbit}}};
+
+    \draw [thick,->,>=stealth] (0.8,0)  -- node [midway,above] {:\textcolor{green}{\small{\texttt{WROTE}}}} (2.4,0);
+
+  \end{tikzpicture}
+  \caption{A half-corrupted edge resulting from conflicting transactions.}
+  \label{half-corrupted}
+\end{figure}
+
+\section{\emph{Delta} Protocol}
+
+As stated earlier stronger isolation level such as serializability and snapshot isolation subsumes reciprocal consistency. The motivation between the \emph{Delta} protocol was to develop a lightweight protocol permitting weaker isolation, reducing coordination and improving performance. It is imagined this protocol could be ``bolted onto'' a distributed graph database employing a NoSQL store with weak isolation for storage.
+
+The \emph{Delta} protocol is designed to mitigate the occurrence of half-corruption and as a result prevent operational corruption. It is assumed database servers accept transactions from clients and execute them on their behalf. Transactions may consist of a series of read and write operations to any object in the database. However, the \emph{Delta} protocol is only invoked when a given transaction writes a distributed edge. Therefore, this protocol can be bolted onto existing mechanisms that provide guarantees within partitions but not across database partitions.
+
+In order to prevent all interleavings in Figure \ref{conf-scen} the \emph{Delta} protocol adopts a probabilistic approach. It is assumed there is a known $\Delta$, that reflects the bound on server communication delays, with a probability $(1-\epsilon)$ that $\Delta$ is violated. All writes by sub-operations are temporary and a sub-operation is allowed to proceed provided there is no other temporary sub-operation preceding it within $\Delta$; measured as per the local clock time. Figure \ref{delta-abort} shows an instance of the protocol preventing Figure \ref{conf-scen} (c), $T_x$ overtakes $T_y$ but is aborted when arriving at $S_j$. An aborted transaction, aborts any and every previous tentative write that it may have successfully completed. A transaction that succeeds at all its tentative write attempts, decides to commit when it completes its all operations; the transaction commits once all its tentative writes are committed. This protocol avoids all conflict scenarios in Figure \ref{conf-scen} provided the bound  $\Delta$ is not violated.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[node distance=2cm]
+    % s1
+    \draw [thick] (1.3,3) -- (1.7,3);
+    \draw [thick,<-,>=stealth] (1.5,0) -- (1.5,3) node[anchor=south] {$S_i$};
+    % s2
+    \draw [thick] (3.3,3) -- (3.7,3);
+    \draw [thick,<-,>=stealth] (3.5,0) -- (3.5,3) node[anchor=south] {$S_j$};
+
+    \draw [thick,->,>=stealth] (1.5,2.5) node[left] {$T_x$} -- (3.5,0.5);
+    \draw [thick,->,>=stealth] (1.5,2) node[left] {$T_y$} -- (3.5,1.8);
+
+    \draw [thick,<->,>=stealth] (3.7,0.5) -- (3.7,1.8) node[midway,right] {$< \Delta$};
+
+  \end{tikzpicture}
+  \caption{An example of the \emph{Delta} protocol preserving reciprocal consistency.}
+  \label{delta-abort}
+\end{figure}
+
+However it is possible that the bound $\Delta$ is violated. If this happens all three conflict scenarios can still occur, resulting in half-corrupted edges and the spread of semantic corruption. Figure \ref{corruption-again} displays an example when the \emph{Delta} protocol fails to maintain reciprocal consistency.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[node distance=2cm]
+    \draw [thick] (1.3,3) -- (1.7,3);
+    \draw [thick,<-,>=stealth] (1.5,0) -- (1.5,3) node[anchor=south] {$S_i$};
+    \draw [thick] (3.3,3) -- (3.7,3);
+    \draw [thick,<-,>=stealth] (3.5,0) -- (3.5,3) node[anchor=south] {$S_j$};
+        \draw [thick,->,>=stealth] (1.5,2.7) node[left] {$T_x$} -- (3.5,0.8);
+    \draw [thick,<-,>=stealth] (1.5,1) -- (3.5,2.2)  node[right] {$T_y$};
+
+    \draw [thick,<->,>=stealth] (0.8,1) -- (0.8,2.2) node[midway,left] {$> \Delta$};
+    \draw [thick,<->,>=stealth] (4.2,1) -- (4.2,2.5) node[midway,right] {$> \Delta$};
+  \end{tikzpicture}
+  \caption{An example of the \emph{Delta} protocol failing to preserve reciprocal consistency.}
+  \label{corruption-again}
+\end{figure}
+
+In short, the protocol attempts to avoid corruption by aborting transactions but cannot do so in all circumstances. Two questions naturally arise regards the performance of the protocol i) how does the protocol impact on the time until operational corruption? ii) how many transaction are aborted as a result of the protocol?
+
+\section{Modeling}
+\label{sec:modeling}
+
+In order to answer i) the model developed in \cite{Ezhilchelvan2018} and fine-tuned in \cite{Webber2019} was extended to measure the impact of the \emph{Delta} protocol\footnote{An empirical evaluation of existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}. A summary of the model is now provided, before discussing the extensions.
+
+Transactions arrive in a Poisson stream with rate $\lambda$ per second. Each transaction contains a random number of read operations, $K$, followed by a single write. Edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$. For each type, a fraction $f$ are distributed edges and the remainder are local edges.
+
+At any moment in time an edge can be in one of four states:
+\begin{enumerate}
+\item Local and clean.
+\item Distributed and clean.
+\item Half-corrupted distributed edge arising from interleaved updates.
+\item Semantically corrupted.
+\end{enumerate}
+The valid state transitions are given in Figure \ref{state-transitions}. Note, only distributed edges can be in state 2, but any edge, including local ones, can be in state 3.
+
+\begin{figure}[ht]
+  \centering
+    \begin{tikzpicture}[node distance=2cm]
+      \node (n0) [circle,draw,radius=0.3, align=center,green] {0};
+      \node (n1) [circle,draw,radius=0.3, align=center, right of=n0,green] {1};
+      \node (n2) [circle,draw,radius=0.3, align=center, right of=n1,orange] {2};
+      \node (n3) [circle,draw,radius=0.3, align=center, right of=n2,red] {3};
+      \draw [thick,<-,>=stealth,green] (n1) to[out=-45,in=-135]  node[below] {$a_{2,1}$} (n2);
+      \draw [thick,->,>=stealth,orange] (n1)  to[out=0,in=-180] node[below] {$a_{1,2}$} (n2);
+      \draw  [thick,->,>=stealth,red] (n2) to[out=-45,in=-135]  node[below] {$a_{2,3}$} (n3);
+      \draw  [thick,->,>=stealth,red]  (n0) to[out=70,in=110] node[above] {$a_{0,3}$} (n3);
+      \draw  [thick,->,>=stealth,red]  (n1) to[out=45,in=135] node[above] {$a_{1,3}$} (n3);
+    \end{tikzpicture}
+    \caption{Edge transitions between clean, half-corrupted and semantically corrupt states.}
+    \label{state-transitions}
+\end{figure}
+
+Probabilities are then derived for a given read operation returning a correct answer (states 1, 2 or the correct record in state 3) and all the reads by a given transaction returning correct answers. Then the probability of conflict $q_i$, of a given transaction arriving at time $t$ and operating on edge of type $i$ is derived. These probabilities are used to construct transition rates $a_{i,j}$ between states, which are used to simulate the process of corrupting the database and obtain estimates for the average time to corruption, $U_{\gamma}$. At time $0$, all edges are clean (free from corruption). When a certain fraction, $\gamma$, of all edges become corrupted, the database itself is said to be operationally corrupt.  Note, the model assumes crash-free hardware and bug-free software for simplicity. The reader is directed to \cite{Ezhilchelvan2018} and \cite{Webber2019} for a granular discussion of the initial model.
+
+The $\Delta$ protocol influences the rate of corruption reducing the conflict probability, $q_i$. To simplify the derivation of the new conflict probability it was assumed. This leaves the Figure 6 as the only source of corruption. From this the following probability can be formulated:
+$$ q_i = P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$
+The arrival times of $T_x,T_y$ are assumed exponentially distributed , $X \sim \exp (\frac{\lambda P_i}{2N_i})$. The transmission times $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}. The complete derivation of $q_i$ is provided in the Appendix.
+
+Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \emph{Delta} protocol? The answer depends on several parameters characterizing four systemic aspects:
+\begin{itemize}
+\item \emph{Size and topology of graph database}. Size is expressed by the total number of edges $N$, and the fraction $f$ of edges distributed across servers. We consider a common edge access patterns or topologies: a Scale-free topology, edges have different access probabilities and those that get accessed more frequently tend to be smaller in number.
+\item \emph{Workload}. Measured as transactions per second (TPS). Significant for measuring $U_{\gamma}$ are: the fraction of this load that writes after reads and the number of reads that precede a write.
+\item \emph{Distributed Write Delays and Choosing $\Delta$}. The smaller the delays the less likely the bound $\Delta$ is violated. Conversely, smaller $\Delta$ is the more likely the bound $\Delta$ is violated. To choose $\Delta$ one calculates $P(M>\Delta) = 1 - \epsilon$, e.g. $\epsilon=0.01$ equates to a $\Delta=2.3s$
+\end{itemize}
+
+To answer ii) an discrete-event simulation was performed. This simulation focused on a subset on the total database, the most popular edges to keep the runtime of the simulation to a reasonable time period. From the simulation metrics are collected measuring the number of aborts as a result of the \emph{delta} protocol for a range of transaction arrival rates and $\Delta$ values.
+
+\section{Evaluation}
+\label{sec:evaluation}
+
+The model assumes that the distributed graph database  processes many reads-followed-by-write graph queries concurrently, processing both local and distributed edges. The simulation is performed on a Scale-Free graph, such as a social network, human brain, or road network, large enough to make processing non-trivial. There are approximately 77 million local edges, approximately 33 million distributed edges (in proportion to good graph partitioning algorithms); a graph of this size would have approximately 10 million nodes.
+
+The graph consisted of five edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7, N_5=10^8$ with access probabilities $p_1 =0.5, p_2 =0.26, p_3=0.13, p_4=0.07$ and $p_5 =0.04$. The number of read operations per query is distributed geometrically starting at $2$, with an average of $15$. In all edge types, a fraction $0.3$ are distributed, the remainder are local. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken under operational corruption $U$, is measured in hours. $U$ considered for a range of transaction arrival rates, $\lambda = (100, ..., 2000)$.
+
+TODO: discuss results
+
+The second simulation considers the most popular class of edges, $N=10^4$, for 3 values of $\Delta = 1.2, 1.5, 2.3$, measured in seconds, which correspond to a 90,95 and 99 \% chance a given message delivery exceeds $\Delta$.
+
+TODO: discuss results
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{./images/corruption_comparison}
-  \caption{A partitioned graph assigned to servers in a cluster. Some edges are local and some distributed}
+  \includegraphics[width=\linewidth]{./images/corruption_comparison2}
+  \caption{Corruption results}
   \Description{Graph representation.}
-  \label{dist-graph}
+  \label{results}
 \end{figure}
 
-% Aborts/s
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{./images/test}
+  \caption{Abort results}
+  \Description{Graph representation.}
+  \label{results2}
+\end{figure}
+
 
 \section{Related Work}
 
+TODO
+
 \section{Conclusions}
 
+TODO
 
-% \section{Introduction}
-% ACM's consolidated article template, introduced in 2017, provides a
-% consistent \LaTeX\ style for use across ACM publications, and
-% incorporates accessibility and metadata-extraction functionality
-% necessary for future Digital Library endeavors. Numerous ACM and
-% SIG-specific \LaTeX\ templates have been examined, and their unique
-% features incorporated into this single new template.
-
-% If you are new to publishing with ACM, this document is a valuable
-% guide to the process of preparing your work for publication. If you
-% have published with ACM before, this document provides insight and
-% instruction into more recent changes to the article template.
-
-% The ``\verb|acmart|'' document class can be used to prepare articles
-% for any ACM publication --- conference or journal, and for any stage
-% of publication, from review to final ``camera-ready'' copy, to the
-% author's own version, with {\itshape very} few changes to the source.
-
-% % \section{Template Overview}
-% % As noted in the introduction, the ``\verb|acmart|'' document class can
-% % be used to prepare many different kinds of documentation --- a
-% % double-blind initial submission of a full-length technical paper, a
-% % two-page SIGGRAPH Emerging Technologies abstract, a ``camera-ready''
-% % journal article, a SIGCHI Extended Abstract, and more --- all by
-% % selecting the appropriate {\itshape template style} and {\itshape
-% %   template parameters}.
-
-% % This document will explain the major features of the document
-% % class. For further information, the {\itshape \LaTeX\ User's Guide} is
-% % available from
-% % \url{https://www.acm.org/publications/proceedings-template}.
-
-% % \subsection{Template Styles}
-
-% % The primary parameter given to the ``\verb|acmart|'' document class is
-% % the {\itshape template style} which corresponds to the kind of publication
-% % or SIG publishing the work. This parameter is enclosed in square
-% % brackets and is a part of the {\verb|documentclass|} command:
-% % \begin{verbatim}
-% %   \documentclass[STYLE]{acmart}
-% % \end{verbatim}
-
-% % Journals use one of three template styles. All but three ACM journals
-% % use the {\verb|acmsmall|} template style:
-% % \begin{itemize}
-% % \item {\verb|acmsmall|}: The default journal template style.
-% % \item {\verb|acmlarge|}: Used by JOCCH and TAP.
-% % \item {\verb|acmtog|}: Used by TOG.
-% % \end{itemize}
-
-% % The majority of conference proceedings documentation will use the {\verb|acmconf|} template style.
-% % \begin{itemize}
-% % \item {\verb|acmconf|}: The default proceedings template style.
-% % \item{\verb|sigchi|}: Used for SIGCHI conference articles.
-% % \item{\verb|sigchi-a|}: Used for SIGCHI ``Extended Abstract'' articles.
-% % \item{\verb|sigplan|}: Used for SIGPLAN conference articles.
-% % \end{itemize}
-
-% % \subsection{Template Parameters}
-
-% % In addition to specifying the {\itshape template style} to be used in
-% % formatting your work, there are a number of {\itshape template parameters}
-% % which modify some part of the applied template style. A complete list
-% % of these parameters can be found in the {\itshape \LaTeX\ User's Guide.}
-
-% % Frequently-used parameters, or combinations of parameters, include:
-% % \begin{itemize}
-% % \item {\verb|anonymous,review|}: Suitable for a ``double-blind''
-% %   conference submission. Anonymizes the work and includes line
-% %   numbers. Use with the \verb|\acmSubmissionID| command to print the
-% %   submission's unique ID on each page of the work.
-% % \item{\verb|authorversion|}: Produces a version of the work suitable
-% %   for posting by the author.
-% % \item{\verb|screen|}: Produces colored hyperlinks.
-% % \end{itemize}
-
-% % This document uses the following string as the first command in the
-% % source file:
-% % \begin{verbatim}
-% % \documentclass[sigplan,screen]{acmart}
-% % \end{verbatim}
-
-% % \section{Modifications}
-
-% % Modifying the template --- including but not limited to: adjusting
-% % margins, typeface sizes, line spacing, paragraph and list definitions,
-% % and the use of the \verb|\vspace| command to manually adjust the
-% % vertical spacing between elements of your work --- is not allowed.
-
-% % {\bfseries Your document will be returned to you for revision if
-% %   modifications are discovered.}
-
-% % \section{Typefaces}
-
-% % The ``\verb|acmart|'' document class requires the use of the
-% % ``Libertine'' typeface family. Your \TeX\ installation should include
-% % this set of packages. Please do not substitute other typefaces. The
-% % ``\verb|lmodern|'' and ``\verb|ltimes|'' packages should not be used,
-% % as they will override the built-in typeface families.
-
-% % \section{Title Information}
-
-% % The title of your work should use capital letters appropriately -
-% % \url{https://capitalizemytitle.com/} has useful rules for
-% % capitalization. Use the {\verb|title|} command to define the title of
-% % your work. If your work has a subtitle, define it with the
-% % {\verb|subtitle|} command.  Do not insert line breaks in your title.
-
-% % If your title is lengthy, you must define a short version to be used
-% % in the page headers, to prevent overlapping text. The \verb|title|
-% % command has a ``short title'' parameter:
-% % \begin{verbatim}
-% %   \title[short title]{full title}
-% % \end{verbatim}
-
-% % \section{Authors and Affiliations}
-
-% % Each author must be defined separately for accurate metadata
-% % identification. Multiple authors may share one affiliation. Authors'
-% % names should not be abbreviated; use full first names wherever
-% % possible. Include authors' e-mail addresses whenever possible.
-
-% % Grouping authors' names or e-mail addresses, or providing an ``e-mail
-% % alias,'' as shown below, is not acceptable:
-% % \begin{verbatim}
-% %   \author{Brooke Aster, David Mehldau}
-% %   \email{dave,judy,steve@university.edu}
-% %   \email{firstname.lastname@phillips.org}
-% % \end{verbatim}
-
-% % The \verb|authornote| and \verb|authornotemark| commands allow a note
-% % to apply to multiple authors --- for example, if the first two authors
-% % of an article contributed equally to the work.
-
-% % If your author list is lengthy, you must define a shortened version of
-% % the list of authors to be used in the page headers, to prevent
-% % overlapping text. The following command should be placed just after
-% % the last \verb|\author{}| definition:
-% % \begin{verbatim}
-% %   \renewcommand{\shortauthors}{McCartney, et al.}
-% % \end{verbatim}
-% % Omitting this command will force the use of a concatenated list of all
-% % of the authors' names, which may result in overlapping text in the
-% % page headers.
-
-% % The article template's documentation, available at
-% % \url{https://www.acm.org/publications/proceedings-template}, has a
-% % complete explanation of these commands and tips for their effective
-% % use.
-
-% % Note that authors' addresses are mandatory for journal articles.
-
-% % \section{Rights Information}
-
-% % Authors of any work published by ACM will need to complete a rights
-% % form. Depending on the kind of work, and the rights management choice
-% % made by the author, this may be copyright transfer, permission,
-% % license, or an OA (open access) agreement.
-
-% % Regardless of the rights management choice, the author will receive a
-% % copy of the completed rights form once it has been submitted. This
-% % form contains \LaTeX\ commands that must be copied into the source
-% % document. When the document source is compiled, these commands and
-% % their parameters add formatted text to several areas of the final
-% % document:
-% % \begin{itemize}
-% % \item the ``ACM Reference Format'' text on the first page.
-% % \item the ``rights management'' text on the first page.
-% % \item the conference information in the page header(s).
-% % \end{itemize}
-
-% % Rights information is unique to the work; if you are preparing several
-% % works for an event, make sure to use the correct set of commands with
-% % each of the works.
-
-% % The ACM Reference Format text is required for all articles over one
-% % page in length, and is optional for one-page articles (abstracts).
-
-% % \section{CCS Concepts and User-Defined Keywords}
-
-% % Two elements of the ``acmart'' document class provide powerful
-% % taxonomic tools for you to help readers find your work in an online
-% % search.
-
-% % The ACM Computing Classification System ---
-% % \url{https://www.acm.org/publications/class-2012} --- is a set of
-% % classifiers and concepts that describe the computing
-% % discipline. Authors can select entries from this classification
-% % system, via \url{https://dl.acm.org/ccs/ccs.cfm}, and generate the
-% % commands to be included in the \LaTeX\ source.
-
-% % User-defined keywords are a comma-separated list of words and phrases
-% % of the authors' choosing, providing a more flexible way of describing
-% % the research being presented.
-
-% % CCS concepts and user-defined keywords are required for for all
-% % articles over two pages in length, and are optional for one- and
-% % two-page articles (or abstracts).
-
-% % \section{Sectioning Commands}
-
-% % Your work should use standard \LaTeX\ sectioning commands:
-% % \verb|section|, \verb|subsection|, \verb|subsubsection|, and
-% % \verb|paragraph|. They should be numbered; do not remove the numbering
-% % from the commands.
-
-% % Simulating a sectioning command by setting the first word or words of
-% % a paragraph in boldface or italicized text is {\bfseries not allowed.}
-
-% % \section{Tables}
-
-% % The ``\verb|acmart|'' document class includes the ``\verb|booktabs|''
-% % package --- \url{https://ctan.org/pkg/booktabs} --- for preparing
-% % high-quality tables.
-
-% % Table captions are placed {\itshape above} the table.
-
-% % Because tables cannot be split across pages, the best placement for
-% % them is typically the top of the page nearest their initial cite.  To
-% % ensure this proper ``floating'' placement of tables, use the
-% % environment \textbf{table} to enclose the table's contents and the
-% % table caption.  The contents of the table itself must go in the
-% % \textbf{tabular} environment, to be aligned properly in rows and
-% % columns, with the desired horizontal and vertical rules.  Again,
-% % detailed instructions on \textbf{tabular} material are found in the
-% % \textit{\LaTeX\ User's Guide}.
-
-% % Immediately following this sentence is the point at which
-% % Table~\ref{tab:freq} is included in the input file; compare the
-% % placement of the table here with the table in the printed output of
-% % this document.
-
-% % \begin{table}
-% %   \caption{Frequency of Special Characters}
-% %   \label{tab:freq}
-% %   \begin{tabular}{ccl}
-% %     \toprule
-% %     Non-English or Math&Frequency&Comments\\
-% %     \midrule
-% %     \O & 1 in 1,000& For Swedish names\\
-% %     $\pi$ & 1 in 5& Common in math\\
-% %     \$ & 4 in 5 & Used in business\\
-% %     $\Psi^2_1$ & 1 in 40,000& Unexplained usage\\
-% %   \bottomrule
-% % \end{tabular}
-% % \end{table}
-
-% % To set a wider table, which takes up the whole width of the page's
-% % live area, use the environment \textbf{table*} to enclose the table's
-% % contents and the table caption.  As with a single-column table, this
-% % wide table will ``float'' to a location deemed more
-% % desirable. Immediately following this sentence is the point at which
-% % Table~\ref{tab:commands} is included in the input file; again, it is
-% % instructive to compare the placement of the table here with the table
-% % in the printed output of this document.
-
-% % \begin{table*}
-% %   \caption{Some Typical Commands}
-% %   \label{tab:commands}
-% %   \begin{tabular}{ccl}
-% %     \toprule
-% %     Command &A Number & Comments\\
-% %     \midrule
-% %     \texttt{{\char'134}author} & 100& Author \\
-% %     \texttt{{\char'134}table}& 300 & For tables\\
-% %     \texttt{{\char'134}table*}& 400& For wider tables\\
-% %     \bottomrule
-% %   \end{tabular}
-% % \end{table*}
-
-% % \section{Math Equations}
-% % You may want to display math equations in three distinct styles:
-% % inline, numbered or non-numbered display.  Each of the three are
-% % discussed in the next sections.
-
-% % \subsection{Inline (In-text) Equations}
-% % A formula that appears in the running text is called an inline or
-% % in-text formula.  It is produced by the \textbf{math} environment,
-% % which can be invoked with the usual
-% % \texttt{{\char'134}begin\,\ldots{\char'134}end} construction or with
-% % the short form \texttt{\$\,\ldots\$}. You can use any of the symbols
-% % and structures, from $\alpha$ to $\omega$, available in
-% % \LaTeX~\cite{Lamport:LaTeX}; this section will simply show a few
-% % examples of in-text equations in context. Notice how this equation:
-% % \begin{math}
-% %   \lim_{n\rightarrow \infty}x=0
-% % \end{math},
-% % set here in in-line math style, looks slightly different when
-% % set in display style.  (See next section).
-
-% % \subsection{Display Equations}
-% % A numbered display equation---one set off by vertical space from the
-% % text and centered horizontally---is produced by the \textbf{equation}
-% % environment. An unnumbered display equation is produced by the
-% % \textbf{displaymath} environment.
-
-% % Again, in either environment, you can use any of the symbols and
-% % structures available in \LaTeX\@; this section will just give a couple
-% % of examples of display equations in context.  First, consider the
-% % equation, shown as an inline equation above:
-% % \begin{equation}
-% %   \lim_{n\rightarrow \infty}x=0
-% % \end{equation}
-% % Notice how it is formatted somewhat differently in
-% % the \textbf{displaymath}
-% % environment.  Now, we'll enter an unnumbered equation:
-% % \begin{displaymath}
-% %   \sum_{i=0}^{\infty} x + 1
-% % \end{displaymath}
-% % and follow it with another numbered equation:
-% % \begin{equation}
-% %   \sum_{i=0}^{\infty}x_i=\int_{0}^{\pi+2} f
-% % \end{equation}
-% % just to demonstrate \LaTeX's able handling of numbering.
-
-% % \section{Figures}
-
-% % The ``\verb|figure|'' environment should be used for figures. One or
-% % more images can be placed within a figure. If your figure contains
-% % third-party material, you must clearly identify it as such, as shown
-% % in the example below.
-% % \begin{figure}[h]
-% %   \centering
-% %   \includegraphics[width=\linewidth]{sample-franklin}
-% %   \caption{1907 Franklin Model D roadster. Photograph by Harris \&
-% %     Ewing, Inc. [Public domain], via Wikimedia
-% %     Commons. (\url{https://goo.gl/VLCRBB}).}
-% %   \Description{The 1907 Franklin Model D roadster.}
-% % \end{figure}
-
-% % Your figures should contain a caption which describes the figure to
-% % the reader. Figure captions go below the figure. Your figures should
-% % {\bfseries also} include a description suitable for screen readers, to
-% % assist the visually-challenged to better understand your work.
-
-% % Figure captions are placed {\itshape below} the figure.
-
-% % \subsection{The ``Teaser Figure''}
-
-% % A ``teaser figure'' is an image, or set of images in one figure, that
-% % are placed after all author and affiliation information, and before
-% % the body of the article, spanning the page. If you wish to have such a
-% % figure in your article, place the command immediately before the
-% % \verb|\maketitle| command:
-% % \begin{verbatim}
-% %   \begin{teaserfigure}
-% %     \includegraphics[width=\textwidth]{sampleteaser}
-% %     \caption{figure caption}
-% %     \Description{figure description}
-% %   \end{teaserfigure}
-% % \end{verbatim}
-
-% % \section{Citations and Bibliographies}
-
-% % The use of \BibTeX\ for the preparation and formatting of one's
-% % references is strongly recommended. Authors' names should be complete
-% % --- use full first names (``Donald E. Knuth'') not initials
-% % (``D. E. Knuth'') --- and the salient identifying features of a
-% % reference should be included: title, year, volume, number, pages,
-% % article DOI, etc.
-
-% % The bibliography is included in your source document with these two
-% % commands, placed just before the \verb|\end{document}| command:
-% \begin{verbatim}
-% \bibliographystyle{ACM-Reference-Format}
-% \bibliography{papoc}
-% \end{verbatim}
-% % % where ``\verb|bibfile|'' is the name, without the ``\verb|.bib|''
-% % % suffix, of t
-%he \BibTeX\ file.
-
-% % Citations and references are numbered by default. A small number of
-% % ACM publications have citations and references formatted in the
-% % ``author year'' style; for these exceptions, please include this
-% % command in the {\bfseries preamble} (before
-% % ``\verb|\begin{document}|'') of your \LaTeX\ source:
-% % \begin{verbatim}
-% %   \citestyle{acmauthoryear}
-% % \end{verbatim}
-
-% %   Some examples.  A paginated journal article \cite{Abril07}, an
-% %   enumerated journal article \cite{Cohen07}, a reference to an entire
-% %   issue \cite{JCohen96}, a monograph (whole book) \cite{Kosiur01}, a
-% %   monograph/whole book in a series (see 2a in spec. document)
-% %   \cite{Harel79}, a divisible-book such as an anthology or compilation
-% %   \cite{Editor00} followed by the same example, however we only output
-% %   the series if the volume number is given \cite{Editor00a} (so
-% %   Editor00a's series should NOT be present since it has no vol. no.),
-% %   a chapter in a divisible book \cite{Spector90}, a chapter in a
-% %   divisible book in a series \cite{Douglass98}, a multi-volume work as
-% %   book \cite{Knuth97}, an article in a proceedings (of a conference,
-% %   symposium, workshop for example) (paginated proceedings article)
-% %   \cite{Andler79}, a proceedings article with all possible elements
-% %   \cite{Smith10}, an example of an enumerated proceedings article
-% %   \cite{VanGundy07}, an informally published work \cite{Harel78}, a
-% %   doctoral dissertation \cite{Clarkson85}, a master's thesis:
-% %   \cite{anisi03}, an online document / world wide web resource
-% %   \cite{Thornburg01, Ablamowicz07, Poker06}, a video game (Case 1)
-% %   \cite{Obama08} and (Case 2) \cite{Novak03} and \cite{Lee05} and
-% %   (Case 3) a patent \cite{JoeScientist001}, work accepted for
-% %   publication \cite{rous08}, 'YYYYb'-test for prolific author
-% %   \cite{SaeediMEJ10} and \cite{SaeediJETC10}. Other cites might
-% %   contain 'duplicate' DOI and URLs (some SIAM articles)
-% %   \cite{Kirschmer:2010:AEI:1958016.1958018}. Boris / Barbara Beeton:
-% %   multi-volume works as books \cite{MR781536} and \cite{MR781537}. A
-% %   couple of citations with DOIs:
-% %   \cite{2004:ITE:1009386.1010128,Kirschmer:2010:AEI:1958016.1958018}. Online
-% %   citations: \cite{TUGInstmem, Thornburg01, CTANacmart}. Artifacts:
-% %   \cite{R} and \cite{UMassCitations}.
-
-% % \section{Acknowledgments}
-
-% % Identification of funding sources and other support, and thanks to
-% % individuals and groups that assisted in the research and the
-% % preparation of the work should be included in an acknowledgment
-% % section, which is placed just before the reference section in your
-% % document.
-
-% % This section has a special environment:
-% % \begin{verbatim}
-% %   \begin{acks}
-% %   ...
-% %   \end{acks}
-% % \end{verbatim}
-% % so that the information contained therein can be more easily collected
-% % during the article metadata extraction phase, and to ensure
-% % consistency in the spelling of the section heading.
-
-% % Authors should not prepare this section as a numbered or unnumbered {\verb|\section|}; please use the ``{\verb|acks|}'' environment.
-
-% \section{Appendices}
-
-% If your work needs an appendix, add it before the
-% ``\verb|\end{document}|'' command at the conclusion of your source
-% document.
-
-% Start the appendix with the ``\verb|appendix|'' command:
-% \begin{verbatim}
-%   \appendix
-% \end{verbatim}
-% and note that in the appendix, sections are lettered, not
-% numbered. This document has two appendices, demonstrating the section
-% and subsection identification method.
-
-
-
-% %%
-% %% The acknowledgments section is defined using the "acks" environment
-% %% (and NOT an unnumbered section). This ensures the proper
-% %% identification of the section in the article metadata, and the
-% %% consistent spelling of the heading.
-% \begin{acks}
-% To Robert, for the bagels and explaining CMYK and color spaces.
-% \end{acks}
-
-%%
-%% The next two lines define the bibliography style to be used, and
-%% the bibliography file.
+\section{Acknowledgments}
+
+TODO
+
+
+\appendix
+\section{Appendix}
+
+Figure \ref{corruption-again} presents an interleaving when a distributed edge can become half-corrupted under the \emph{Delta} protocol.
+
+Transaction $T_x$ arrives at $S_i$ at time $t_x$ (let $t=0$) and writes tentatively, with the message delay between servers for $T_x$ to write the edge at $S_j$ being $M_x$. Transaction $T_y$ arrives at $S_j$ at time $t_y$ ($t_y > t_x$) and writes the distributed edge, $T_y$ then takes time $M_y$ to write the edge at $S_i$. If $T_x$ arrives at $S_j$ after $t_y + \Delta$ and $T_y$ arrives at $S_i$ after $t_x + \Delta$ the edge can become half-corrupted. Letting $t_x = 0 $, the probability that $T_x$ and $T_y$ conflict can be formulated as: $$ P \left[ ( M_x >  \Delta + T_y) \cap (M_y > \Delta - T_x) \right]$$.
+
+The arrival times of $T_x,T_y$ are assumed exponentially distributed , $T \sim \exp (\rho)$. Where, $ \rho = \beta = \frac{\lambda P_i}{2N_i}$, the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$. The transmission times between servers $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}.
+
+% Therefore,  $$ g(y) = \delta e^{-\delta y} $$
+
+Therefore,
+\begin{dmath*}
+  q_{i} =  {P \left[ ( T_1 >  d + X) \cap (T_2 > d-X)  \right]} \\
+  =  \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} e^{-\delta (d-x)} dx + \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} dx  \\
+  =  e^{-2 d \delta} - \left( \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} \right) e^{-(\frac{\lambda P_i}{2 N_i}+ 2\delta)d} \\
+\end{dmath*}
+
+To choose to bound $\Delta$ consider the probability of the message delay exceeding  $\Delta$.
+\begin{align*}
+  P \left[ M > \Delta \right] & = 1 - e^{- \delta \Delta} \\
+  1 - e^{- \delta \Delta} & = 1 - \epsilon \\
+  e^{- \delta d} & = \epsilon  \\
+  \Delta & = - \frac{\ln(\epsilon)}{\delta}
+\end{align*}
+
+Substituting $\Delta$ into the above equation yields the conflict probability for a given $\epsilon$. For example, $ e = 0.001$ gives a $0.001$ \% probability the message delay exceeds $\Delta$, for this  $\Delta = 0.035s$
+% \begin{align}
+%   e^{- \lambda d} =  e^{-\delta d \frac{\lambda}{\delta}} = \epsilon^{\frac{\lambda}{\delta}} \label{eqn7}
+% \end{align}
+% Therefore, from (\ref{eqn5} and  (\ref{eqn7}),
+% \begin{align}
+%   & = \epsilon^2 - \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-\frac{\lambda P_i}{2 N_i} d} \epsilon^2 \\
+%   & = \epsilon^2 \left[1 -\frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-\frac{\lambda P_i}{2 N_i} d} \right]
+% \end{align}
+
+
+%Where, $ E \left[ T_1 \right] = E \left[ T_2\right] = \frac{1}{\delta}$.
+%Therefore, $$ f(x) =\frac{\lambda P_i}{2N_i} e^{-\frac{\lambda P_i}{2N_i} x} $$
+
+%  =   \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta 2 d} dx +  \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\delta d} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)x}  dx  \\
+%         =   e^{-2 d \delta} \left[1 - e^{-\frac{\lambda P_i}{2 N_i} d} \right] + \frac{\frac{\lambda P_i}{2 N_i} e^{-\delta d}}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)d} \\
+
+
+
+
+
+
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{papoc}
-
-% % %%
-% % %% If your work has an appendix, this is the place to put it.
-% % \appendix
-
 
 \end{document}
 \endinput

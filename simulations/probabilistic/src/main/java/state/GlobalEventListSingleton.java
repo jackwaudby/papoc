@@ -5,6 +5,9 @@ import event.AbstractEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * This class represents the simulation's event list
+ */
 public class GlobalEventListSingleton {
 
     private int transactionsArrived = 0;
@@ -23,8 +26,8 @@ public class GlobalEventListSingleton {
         eventList.add(event);
     }
 
-    public void removeEvents() {
-
+    public void clearEvents() {
+        eventList.clear();
     }
 
     public AbstractEvent getNextEvent() {

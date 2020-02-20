@@ -13,10 +13,6 @@ public class SimulationRandom {
     private Random side;
     private Random txn;
 
-    private int length; // geometric sequence length
-    private double startValue; // geometric sequence start value
-    private double commonRatio; // geometric sequence common ratio
-    private double[] geometricSequence;
     private double[] cumulativeSum;
 
     private static final SimulationRandom instance = new SimulationRandom();
@@ -27,7 +23,7 @@ public class SimulationRandom {
 
         // init random number generators
         networkDelayDistribution = new ExponentialDistribution(averageNetworkDelay);
-        double arrivalRate = (double) 1/SystemMetrics.getInstance().getTps();
+        double arrivalRate = (double) 1/SimulationConfiguration.getInstance().getTPS();
         arrivalDistribution = new ExponentialDistribution(arrivalRate);
         edgeId = new Random();
         side = new Random();
@@ -44,17 +40,20 @@ public class SimulationRandom {
         }
 
         // init geometric sequence
-        length = SimulationConfiguration.getInstance().getLength();
-        startValue = SimulationConfiguration.getInstance().getStartValue();
-        commonRatio = SimulationConfiguration.getInstance().getRatio();
-        geometricSequence = new double[length];
+        // geometric sequence length
+        int length = SimulationConfiguration.getInstance().getLength();
+        // geometric sequence start value
+        double startValue = SimulationConfiguration.getInstance().getStartValue();
+        // geometric sequence common ratio
+        double commonRatio = SimulationConfiguration.getInstance().getRatio();
+        double[] geometricSequence = new double[length];
         geometricSequence[0] = startValue;
-        for (int i = 1; i<length; i++) {
+        for (int i = 1; i< length; i++) {
             geometricSequence[i] = geometricSequence[i-1] * commonRatio;
         }
         cumulativeSum = new double[length];
         cumulativeSum[0] = geometricSequence[0];
-        for (int i = 1; i < length;i++) {
+        for (int i = 1; i < length; i++) {
 
             cumulativeSum[i] = cumulativeSum[i-1] + geometricSequence[i];
         }

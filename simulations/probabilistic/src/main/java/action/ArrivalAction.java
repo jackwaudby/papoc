@@ -25,7 +25,6 @@ public class ArrivalAction {
 
         // create transaction
         Transaction transaction = new Transaction(GlobalEventListSingleton.getInstance().getTransactionsArrived());
-        transaction.setStartTime(arrivalEvent.getEventTime());
         LOGGER.debug("Arrival: " + transaction);
         GlobalEventListSingleton.getInstance().incrementTransactionsArrived();
 
