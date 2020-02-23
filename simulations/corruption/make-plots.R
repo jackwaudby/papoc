@@ -31,8 +31,8 @@ png("../../paper/images/corruption_comparison.png")
 
 p=ggplot(data=df, aes(x=lam,y=U,linetype=type,color=type)) +
     geom_line() +
-    scale_linetype_discrete(name="Delta: ",labels=unname(TeX(c("2.3s","1.5s","1.2s","0s")))) +
-    scale_color_discrete(name="Delta: ",labels=unname(TeX(c("2.3s","1.5s","1.2s","0s")))) +
+    scale_linetype_discrete(name="Eps: ",labels=unname(TeX(c("NA","0.1","0.05","0.01")))) +
+    scale_color_discrete(name="Eps: ",labels=unname(TeX(c("NA","0.1","0.05","0.01")))) +
     scale_x_continuous(name="TPS",breaks=seq(0,2000,200),limits=c(0,2000)) +
     scale_y_continuous(name="U",breaks=seq(0,5000,500)) + 
     theme_few()

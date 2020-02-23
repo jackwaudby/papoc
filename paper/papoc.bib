@@ -85,17 +85,16 @@
 }
 
 @Article{Bailis2013,
-  author        = {Peter Bailis and Ali Ghodsi},
-  title         = {Eventual consistency today: limitations, extensions, and beyond},
-  journal       = {Commun. {ACM}},
-  year          = {2013},
-  volume        = {56},
-  number        = {5},
-  pages         = {55--63},
-  __markedentry = {[jackwaudby:]},
-  bibsource     = {dblp computer science bibliography, https://dblp.org},
-  biburl        = {https://dblp.org/rec/journals/cacm/BailisG13.bib},
-  doi           = {10.1145/2447976.2447992},
+  author    = {Peter Bailis and Ali Ghodsi},
+  title     = {Eventual consistency today: limitations, extensions, and beyond},
+  journal   = {Commun. {ACM}},
+  year      = {2013},
+  volume    = {56},
+  number    = {5},
+  pages     = {55--63},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  biburl    = {https://dblp.org/rec/journals/cacm/BailisG13.bib},
+  doi       = {10.1145/2447976.2447992},
 }
 
 @Misc{janusgraph,
@@ -117,22 +116,74 @@
 }
 
 @Article{Webber2019,
-  author        = {Jim Webber and Paul Ezhilchelvan and Isi Mitrani},
-  title         = {Modeling Corruption in Eventually-Consistent Graph Databases},
-  __markedentry = {[jackwaudby:6]},
-  abstract      = {We present a model and analysis of an eventually consistent graph database where loosely cooperating servers accept concurrent updates to a partitioned, distributed graph. The model is high-fidelity and preserves design choices from contemporary graph database management systems. To explore the problem space, we use two common graph topologies as data models for realistic experimentation. The analysis reveals, even assuming completely fault-free hardware and bug-free software, that if it is possible for updates to interfere with one-another, corruption will occur and spread significantly through the graph within the production database lifetime. Using our model, database designers and operators can compute the rate of corruption for their systems and determine whether they are sufficiently dependable for their intended use.},
-  date          = {2019-04-09},
-  eprint        = {http://arxiv.org/abs/1904.04702v1},
-  eprintclass   = {cs.DB},
-  eprinttype    = {arXiv},
-  file          = {:http\://arxiv.org/pdf/1904.04702v1:PDF},
-  keywords      = {cs.DB, cs.DC, cs.PF},
+  author      = {Jim Webber and Paul Ezhilchelvan and Isi Mitrani},
+  title       = {Modeling Corruption in Eventually-Consistent Graph Databases},
+  abstract    = {We present a model and analysis of an eventually consistent graph database where loosely cooperating servers accept concurrent updates to a partitioned, distributed graph. The model is high-fidelity and preserves design choices from contemporary graph database management systems. To explore the problem space, we use two common graph topologies as data models for realistic experimentation. The analysis reveals, even assuming completely fault-free hardware and bug-free software, that if it is possible for updates to interfere with one-another, corruption will occur and spread significantly through the graph within the production database lifetime. Using our model, database designers and operators can compute the rate of corruption for their systems and determine whether they are sufficiently dependable for their intended use.},
+  date        = {2019-04-09},
+  eprint      = {http://arxiv.org/abs/1904.04702v1},
+  eprintclass = {cs.DB},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1904.04702v1:PDF},
+  keywords    = {cs.DB, cs.DC, cs.PF},
 }
 
 @Misc{ScaleFree,
   title        = {Scale-Free Networks},
   howpublished = {\url{https://en.wikipedia.org/wiki/Scale-free_network}},
   note         = {Accessed:[19-02-20]},
+}
+
+@Article{Pritchett2008,
+  author    = {Dan Pritchett},
+  title     = {{BASE:} An Acid Alternative},
+  journal   = {{ACM} Queue},
+  year      = {2008},
+  volume    = {6},
+  number    = {3},
+  pages     = {48--55},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  biburl    = {https://dblp.org/rec/journals/queue/Pritchett08.bib},
+  doi       = {10.1145/1394127.1394128},
+}
+
+@Book{Bernstein1987,
+  title     = {Concurrency Control and Recovery in Database Systems},
+  publisher = {Addison-Wesley},
+  year      = {1987},
+  author    = {Philip A. Bernstein and Vassos Hadzilacos and Nathan Goodman},
+  isbn      = {0-201-10715-5},
+  bibsource = {dblp computer science bibliography, https://dblp.org},
+  biburl    = {https://dblp.org/rec/books/aw/BernsteinHG87.bib},
+  url       = {http://research.microsoft.com/en-us/people/philbe/ccontrol.aspx},
+}
+
+@InProceedings{Bailis2014,
+  author        = {Peter Bailis and Alan Fekete and Joseph M. Hellerstein and Ali Ghodsi and Ion Stoica},
+  title         = {Scalable atomic visibility with {RAMP} transactions},
+  booktitle     = {International Conference on Management of Data, {SIGMOD} 2014, Snowbird, UT, USA, June 22-27, 2014},
+  year          = {2014},
+  editor        = {Curtis E. Dyreson and Feifei Li and M. Tamer {\"{O}}zsu},
+  pages         = {27--38},
+  publisher     = {{ACM}},
+  __markedentry = {[jackwaudby:]},
+  bibsource     = {dblp computer science bibliography, https://dblp.org},
+  biburl        = {https://dblp.org/rec/conf/sigmod/BailisFHGS14.bib},
+  doi           = {10.1145/2588555.2588562},
+}
+
+@Misc{openCypher,
+  title        = {{openCypher Documentation}},
+  howpublished = {\url{https://www.opencypher.org}},
+}
+
+@InProceedings{Adya2000,
+  author        = {Adya, Atul and Liskov, Barbara and O'Neil, Patrick},
+  title         = {Generalized isolation level definitions},
+  booktitle     = {Proceedings of 16th International Conference on Data Engineering (Cat. No. 00CB37073)},
+  year          = {2000},
+  pages         = {67--78},
+  organization  = {IEEE},
+  __markedentry = {[jackwaudby:6]},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}
