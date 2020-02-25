@@ -14,7 +14,6 @@ no_isolation <- function(N,p,f,lam,r,gam,del){
   n[,1]=(1-f)*N # init. local
   n[,2]=f*N # init. dist
 
-  #q=1-exp(-0.5*lam*0.005*(p/N))
   q=(lam*del / (2*N + lam*del)) # conflict prob
 
   while(sum(n)>Nt*(1-gam)){

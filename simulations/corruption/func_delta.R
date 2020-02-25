@@ -1,25 +1,23 @@
-probabilistic <- function(N,p,f,lam,r,gam,eps,del){
+probabilistic <- function(N,p,f,lam,r,gam,D,del){
   t=0
-  n=matrix(rep(0,15),ncol=3,nrow=5)
-  tr=matrix(rep(0,25),ncol=5,nrow=5)
+  n=matrix(0,ncol=3,nrow=length(N))
+  tr=matrix(0,ncol=5,nrow=length(N))
   Nt=sum(N)
   n[,1]=(1-f)*N
   n[,2]=f*N
-  eps=eps   
-  d=-log(eps)/del
   pn=(lam*p)/(N*2)
   q=rep(0,5)
-  for(i in 1:5){
-    q[i]=eps*eps*(1-(del/(pn[i]+del))*exp(-pn[i]*d))
+  for(i in 1:length(N)){
+    q[i]=exp(-2*D*del) - (del/(pn[i] + del)) * exp(-D*(pn[i]+2*del))
   }
   while(sum(n)>Nt*(1-gam)){
-    a=rep(0,5)
-    for(i in 1:5){
+    a=rep(0,length(N))
+    for(i in 1:length(N)){
       a[i]=(p[i]/N[i])*(n[i,1]+n[i,2]+0.5*n[i,3])
     }
     a=sum(a)
     b=a^2*r/(1-a+a*r)
-    for(i in 1:5){
+    for(i in 1:length(N)){
       tr[i,1]=((lam*p[i]*n[i,2])/N[i])*q[i]*b*b
       tr[i,2]=((lam*p[i]*n[i,3])/N[i])*(1-q[i])*b
       tr[i,3]=((lam*p[i]*n[i,3])/N[i])*(1-b)
@@ -28,7 +26,7 @@ probabilistic <- function(N,p,f,lam,r,gam,eps,del){
     }
     tt=sum(tr)
     t = t + 1/tt
-    i = sample(c(1, 2, 3, 4, 5), size = 1, replace = TRUE, prob = rowSums(tr)/tt)
+    i = sample(seq(1,length(N)), size = 1, replace = TRUE, prob = rowSums(tr)/tt)
     j = sample(c(1, 2, 3, 4, 5), size = 1, replace = TRUE, prob = tr[i,]/sum(tr[i,]))
     if(j==1){
       n[i,2] = n[i,2] - 1

@@ -23,7 +23,7 @@ public class ProbabilisticProtocolSimulation {
 
     public static void main(String[] args) {
 
-        int[] tpsRange = {100000};
+        int[] tpsRange = {1000};
 
         String[] headers = {"tps","arrivals","collisions","commits","duration"};
 
@@ -96,7 +96,7 @@ public class ProbabilisticProtocolSimulation {
 
     private static void runSimulation() {
 
-        while (SystemMetrics.getInstance().getCompleted() < 1000000) {
+        while (SystemMetrics.getInstance().getCompleted() < 100000) {
 
             if (SystemMetrics.getInstance().getArrivals() % 10 == 0){
                 System.out.print("Completed: " + SystemMetrics.getInstance().getCompleted() +

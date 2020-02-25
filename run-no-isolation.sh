@@ -1,3 +1,3 @@
 #!/bin/bash
 
-Rscript simulations/corruption/sim-no-isolation.R $1 $2
+Rscript simulations/corruption/no-isolation-sim.R $1 $2

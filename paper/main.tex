@@ -344,7 +344,7 @@ TODO: Add an example of a subsequent R/W transaction that introduces semantic co
 
 As stated earlier stronger isolation levels such as Serializability and Snapshot Isolation ensure reciprocal consistency. The motivation behind the \emph{Delta} protocol was to develop a lightweight protocol that maintains structural integrity of a distributed graph database at a cheaper cost then protocols with stronger guarantees. One could imagine such a protocol be ``bolted onto'' a BASE distributed graph database.
 
-The \emph{Delta} protocol is designed to prevent the occurrence of dirty writes to maintain structural integrity of the graph. A client-server model is assumed, with transactions comprised of a graph traversal (set of read operations) followed by a series of writes. There are two distinct phases, in the first phase transactions attempt perform reads and write provisionally. If successful an atomic commitment protocol is invoked, else the transaction is aborted and tentative writes are removed.
+The \emph{Delta} protocol is designed to prevent the occurrence of dirty writes to maintain structural integrity of the graph. A client-server model is assumed, with transactions comprised of a graph traversal (set of read operations) followed by a series of writes - for simplicity a single write is assumed. There are two distinct phases, in the first phase transactions attempt perform reads and write provisionally. If successful an atomic commitment protocol is invoked, else the transaction is aborted and tentative writes are removed.
 
 In order to prevent all interleavings in Figure \ref{conf-scen} it is assumed there is a known $\Delta$, that reflects the time taken to perform both sub-operations in the first phase, with a probability $(1-\epsilon)$ that $\Delta$ is exceeded.
 
@@ -428,7 +428,7 @@ Probabilities are then derived for a given read operation returning a correct an
 
 The \emph{Delta} protocol influences the rate of corruption reducing the probability a transaction corrupts an edge, $q^{new}_i$. To simplify the derivation of the new conflict probability it was assumed. This leaves the Figure 6 as the only source of corruption. From this the following probability can be formulated:
 $$ q^{new}_i = P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$
-The arrival times of $T_x,T_y$ are assumed exponentially distributed , $X \sim \exp (\frac{\lambda P_i}{2N_i})$. The transmission times $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}. The complete derivation of $q_i$ is provided in Appendix A.
+The arrival times of $T_x,T_y$ are assumed exponentially distributed , $X \sim \exp (\frac{\lambda P_i}{2N_i})$. The transmission times $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}. The complete derivation of $q^{new}_i$ is provided in Appendix A.
 
 Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \emph{Delta} protocol? The answer depends on several parameters characterizing four systemic aspects:
 \begin{itemize}
@@ -445,7 +445,7 @@ TODO: Method for working out number of aborts ii)
 
 The model assumes that the distributed graph database  processes many reads-followed-by-write graph queries concurrently, processing both local and distributed edges. The simulation is performed on a Scale-Free graph, such as a social network, human brain, or road network, large enough to make processing non-trivial. There are approximately 77 million local edges, approximately 33 million distributed edges (in proportion to good graph partitioning algorithms); a graph of this size would have approximately 10 million nodes.
 
-The graph consisted of five edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7, N_5=10^8$ with access probabilities $p_1 =0.5, p_2 =0.26, p_3=0.13, p_4=0.07$ and $p_5 =0.04$. The number of read operations per query is distributed geometrically starting at $2$, with an average of $15$. In all edge types, a fraction $0.3$ are distributed, the remainder are local. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken under operational corruption $U$, is measured in hours. $U$ considered for a range of transaction arrival rates, $\lambda = (100, ..., 1000)$.
+The graph consisted of five edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7, N_5=10^8$ with access probabilities $p_1 =0.5, p_2 =0.26, p_3=0.13, p_4=0.07$ and $p_5 =0.04$. The number of read operations per query is distributed geometrically starting at $2$, with an average of $15$. In all edge types, a fraction $0.3$ are distributed, the remainder are local. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken under operational corruption $U$, is measured in hours. $U$ considered for a range of transaction arrival rates, $\lambda = (100, ..., 2000)$.
 
 \begin{figure}[h]
   \centering
@@ -455,7 +455,7 @@ The graph consisted of five edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7,
   \label{results}
 \end{figure}
 
-TODO: add aborts/s
+TODO: add aborts/s \\
 TODO: discuss results
 
 \section{Related Work}

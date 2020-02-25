@@ -12,7 +12,7 @@ Parameters are fixed as in EPEW 18'. Produce time to corruption saved in `result
 ./run-no-isolation.sh <lam> <gam>
 
 # run delta protocol simulation
-./run-delta-protocol-sim.sh <lam> <gam> <eps>
+./run-delta-protocol-sim.sh <lam> <gam> <delta>
 ```
 
 ## Protocol Simulations ##
@@ -21,14 +21,12 @@ Parameters are fixed as in EPEW 18'. Produce time to corruption saved in `result
 
 ```
 # build image from Dockerfile
-docker build -f Dockerfile.no -t time-to-corruption .
-docker build -f Dockerfile.delta -t delta-protocol .
-
+docker build -f Dockerfile -t time-to-corruption .
 ```
 ```
 # run container, mount files, run files
 docker run -v `pwd`/:/usr/local/src/scripts/ -d time-to-corruption ./run-no-isolation.sh <lam> <gam>
 
-docker run -v `pwd`/:/usr/local/src/scripts/ -d delta-protocol ./run-delta-protocol-sim.sh <lam> <gam> <eps>
+docker run -v `pwd`/:/usr/local/src/scripts/ -d time-to-corruption ./run-delta-protocol-sim.sh <lam> <gam> <delta>
 
 ```
