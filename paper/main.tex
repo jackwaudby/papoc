@@ -171,7 +171,7 @@ In order to preserve reciprocal consistency, one could implement a heavyweight c
 
 A common design pattern for building a distributed graph database is to use a BASE database for storage, adapted with a graph processing layer (\cite{janusgraph}, \cite{TitanDB}). Recent work \cite{Ezhilchelvan2018} and \cite{Webber2019} highlighted how reciprocal consistency can easily be violated in such a design introducing corruption into the database. Moreover, due to the \emph{Scale-Free} \cite{ScaleFree} property exhibited by many real world graphs, this corruption can propagate through the database at alarmingly rates.
 
-The contribution of this paper is the description of a protocol that ensures reciprocal consistency, preserving structural integrity in a distributed graph database assuming a transaction processing context. The protocol maintains these guarantee given certain condition hold. If these conditions are violated corruption can still occur. The protocol's impact on the rate of corruption and its performance is evaluated and discussed.
+The contribution of this paper is the description of a protocol that ensures reciprocal consistency, preserving structural integrity in a distributed graph database in a transaction processing setting. The protocol maintains this guarantee provided certain condition hold. If these conditions are violated corruption can still occur. The protocol's impact on the rate of database corruption and its performance is evaluated and discussed.
 
 The key finding is whilst the protocol reduces the chance of initial corruption of clean database records, due to the scale-free topology corruption propagates alarmingly quick even for modest transaction arrival rates. This motivates the use of deterministic reciprocal consistency protocols or the use of protocols with stronger isolation guarantees, which subsume reciprocal consistency (\cite{Bailis2014}, \cite{Berenson1995}, \cite{Bernstein1987}).
 
@@ -297,13 +297,13 @@ Adjacency lists can now contain edge pointers to vertices on remote servers. Mai
   \label{conf-scen}
 \end{figure*}
 
-Earlier work investigated how weak isolation in BASE distributed graph databases can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates \cite{Ezhilchelvan2018}, \cite{Webber2019}.
+Earlier work investigated how weak isolation in BASE distributed graph databases can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates (\cite{Ezhilchelvan2018}, \cite{Webber2019}).
 
-When a given transaction writes a distributed edge it must perform two distinct sub-operations, writing reciprocal information at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively. Concurrent transaction's sub-operations interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated Figure \ref{conf-scen}. For such edges there exists a correct and a incorrect entry. Note, the order in which sub-operations take place is not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}. A graph with half-corrupted edges has suffered \emph{structural corruption}.
+When a given transaction writes a distributed edge it must perform two distinct sub-operations, writing reciprocal information at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively. Concurrent transaction's sub-operations interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated, Figure \ref{conf-scen}. For such edges there exists a correct and a incorrect entry. Note, the order in which sub-operations take place is not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}. A graph with half-corrupted edges has suffered \emph{structural corruption}.
 
 This is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000}), which is proscribed by the weakest ANSI isolation level \textbf{Read Uncommitted}. Under Read Uncommitted the database ensures a total order on transactions, consistently ordering writes from concurrent transactions, which would prevent all interleavings in Figure \ref{conf-scen}.
 
-In a BASE distributed graph database there is no mechanism for repairing half-corrupt distributed edges. Structural corruption once occurred tends to persist\footnote{It is possible that subsequent modification could overwrite the corrupted information.}.
+In a BASE distributed graph database there is no mechanism for repairing half-corrupt distributed edges. Structural corruption once occurred tends to persist\footnote{It is possible that subsequent modifications could correctly overwrite the corrupted information.}.
 
 Now, if subsequent transactions read the incorrect entry of a half-corrupted edge and write further edges, \emph{semantic corruption} has been introduced into the database. Further semantic corruption spreads by the same mechanism. A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use.
 
@@ -338,17 +338,17 @@ Any interleaving in Figure \ref{conf-scen} will result in the half-corrupted edg
   \label{half-corrupted}
 \end{figure}
 
-TODO: Add an example of a subsequent R/W transaction that introduces semantic corruption
+Assume, the correct ordering of transactions is $T_y$ then $T_x$. One could now imagine a read-write transaction, $T_z$ that introduces new information based on the incorrect information at vertex \emph{a}.
 
 \section{\emph{Delta} Protocol}
 
 As stated earlier stronger isolation levels such as Serializability and Snapshot Isolation ensure reciprocal consistency. The motivation behind the \emph{Delta} protocol was to develop a lightweight protocol that maintains structural integrity of a distributed graph database at a cheaper cost then protocols with stronger guarantees. One could imagine such a protocol be ``bolted onto'' a BASE distributed graph database.
 
-The \emph{Delta} protocol is designed to prevent the occurrence of dirty writes to maintain structural integrity of the graph. A client-server model is assumed, with transactions comprised of a graph traversal (set of read operations) followed by a series of writes - for simplicity a single write is assumed. There are two distinct phases, in the first phase transactions attempt perform reads and write provisionally. If successful an atomic commitment protocol is invoked, else the transaction is aborted and tentative writes are removed.
+The \emph{Delta} protocol is designed to prevent the occurrence of dirty writes across partitions in order to maintain structural integrity of the graph. A client-server model is assumed, with transactions comprised of a graph traversal (set of read operations) followed by a series of writes - for simplicity a single write is assumed. There are two distinct phases, in the first phase transactions attempt perform reads and write provisionally. In the second phase, if successful an atomic commitment protocol is invoked, else the transaction is aborted and tentative writes are removed.
 
-In order to prevent all interleavings in Figure \ref{conf-scen} it is assumed there is a known $\Delta$, that reflects the time taken to perform both sub-operations in the first phase, with a probability $(1-\epsilon)$ that $\Delta$ is exceeded.
+In order to prevent all interleavings in Figure \ref{conf-scen} it is assumed there is a known $\Delta$, that reflects the time taken to perform both sub-operations at the ends of a distributed edge in the first phase.
 
-A distributed edge write sub-operation is allowed to proceed provided there is no other temporary write sub-operation preceding it within $\Delta$; measured as per the local clock time. Figure \ref{delta-abort} shows an instance of the protocol preventing Figure \ref{conf-scen} (c), $T_x$ overtakes $T_y$ but is aborted when arriving at $S_j$. An aborted transaction, aborts any and every previous tentative write that it may have successfully completed. A transaction that succeeds at all its tentative write attempts, decides to commit when it completes its all operations; the transaction commits once all its tentative writes are committed. This protocol avoids all conflict scenarios in Figure \ref{conf-scen} provided $\Delta$ is exceeded.
+A distributed edge write sub-operation is allowed to proceed provided there is no other temporary write sub-operation preceding it within $\Delta$; measured as per the local clock time. Figure \ref{delta-abort} shows an instance of the protocol preventing Figure \ref{conf-scen}(c), $T_x$ overtakes $T_y$ but is aborted when arriving at $S_j$. An aborted transaction, aborts any and every previous tentative write that it may have successfully completed. A transaction that succeeds at all its tentative write attempts, decides to commit when it completes its all operations; the transaction commits once all its tentative writes are committed. This protocol avoids all conflict scenarios in Figure \ref{conf-scen} provided $\Delta$ is not exceeded.
 
 \begin{figure}[H]
   \centering
@@ -370,7 +370,7 @@ A distributed edge write sub-operation is allowed to proceed provided there is n
   \label{delta-abort}
 \end{figure}
 
-However it is possible that $\Delta$ is exceeded. If this happens all three conflict scenarios can still occur, resulting in half-corrupted edges and the spread of semantic corruption. Figure \ref{corruption-again} displays an example when the \emph{Delta} protocol fails to maintain reciprocal consistency.
+If $\Delta$ is exceeded all three conflict scenarios can still occur, resulting in half-corrupted edges and the spread of semantic corruption. Figure \ref{corruption-again} displays an example when the \emph{Delta} protocol fails to maintain reciprocal consistency.
 
 \begin{figure}[H]
   \centering
@@ -389,7 +389,9 @@ However it is possible that $\Delta$ is exceeded. If this happens all three conf
   \label{corruption-again}
 \end{figure}
 
-In short, the protocol attempts to avoid corruption by aborting transactions but cannot do so in all circumstances. Two questions naturally arise regards the performance of the protocol i) how does the protocol impact on the time until operational corruption? ii) how many transaction are aborted as a result of the protocol?
+In summary, the protocol attempts to avoid corruption by aborting transactions but cannot do so in all circumstances. Two questions naturally arise regards the performance of the protocol i) how does the protocol impact on the time until operational corruption? ii) how many transaction are aborted as a result of the protocol?
+
+% more details
 
 \section{Modeling}
 \label{sec:modeling}
@@ -459,6 +461,12 @@ TODO: add aborts/s \\
 TODO: discuss results
 
 \section{Related Work}
+
+Providing only reciprocal consistency is a weak guarantee yet vital to the integrity of a distributed graph database.
+
+RAMP is the closest thing.
+
+IPA/CRDT defining which edge wins in an application is not trivial
 
 TODO
 

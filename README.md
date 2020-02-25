@@ -15,8 +15,6 @@ Parameters are fixed as in EPEW 18'. Produce time to corruption saved in `result
 ./run-delta-protocol-sim.sh <lam> <gam> <delta>
 ```
 
-## Protocol Simulations ##
-
 ## Docker ##
 
 ```
@@ -29,4 +27,16 @@ docker run -v `pwd`/:/usr/local/src/scripts/ -d time-to-corruption ./run-no-isol
 
 docker run -v `pwd`/:/usr/local/src/scripts/ -d time-to-corruption ./run-delta-protocol-sim.sh <lam> <gam> <delta>
 
+```
+
+## Protocol Simulations ##
+
+```
+# build image from Dockerfile
+docker build -f Dockerfile -t abort-sim .
+```
+
+```
+# run container
+docker run -v `pwd`/:/usr/local/src/scripts -d abort-sim java -cp "./target/uber-probabilistic-1.0-SNAPSHOT.jar" ProbabilisticProtocolSimulation <delta in ms>
 ```

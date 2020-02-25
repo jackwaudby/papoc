@@ -9,22 +9,6 @@ import java.io.IOException;
  */
 public class WriteOutResults {
 
-//    public static void fileHeader() {
-//
-//        String[] headers = {"tps","arrivals","collisions","commits","duration"};
-//
-//        StringBuilder headerStringBuilder = new StringBuilder();
-//        for(String header : headers){
-//            headerStringBuilder.append(header).append(",");
-//        }
-//
-//        String headerString = headerStringBuilder.toString();
-//        if( headerString.length() > 0 ) // remove trailing comma
-//            headerString = headerString.substring(0, headerString.length() - 1);
-//
-//        writeOut(headerString);
-//    }
-
     public static void writeOut(String[] string) {
 
         StringBuilder headerStringBuilder = new StringBuilder();
@@ -39,9 +23,10 @@ public class WriteOutResults {
 
         BufferedWriter outputStream = null;
         FileWriter fileWriter;
-        double delta = SimulationConfiguration.getInstance().getDelta();
+        int delta = (int) SimulationConfiguration.getInstance().getDeltaInMS();
+        int tps = SimulationConfiguration.getInstance().getTPS();
         try {
-            fileWriter = new FileWriter("./results/probabilistic/probabilistic_" + delta + ".csv",true);
+            fileWriter = new FileWriter("./delta_" + delta + "_" + tps + ".csv",true);
             outputStream = new BufferedWriter(fileWriter);
             outputStream.append(headerString);
             outputStream.append("\n");

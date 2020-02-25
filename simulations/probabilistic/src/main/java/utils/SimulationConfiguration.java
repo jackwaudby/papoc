@@ -47,10 +47,6 @@ public class SimulationConfiguration {
         return Integer.parseInt(simulationConfiguration.getProperty("database.size"));
     }
 
-    public int getTxnLimit(){
-        return Integer.parseInt(simulationConfiguration.getProperty("txn.limit"));
-    }
-
     long getSeedValue() {
         return Long.parseLong(simulationConfiguration.getProperty("seed.value"));
     }
@@ -71,9 +67,22 @@ public class SimulationConfiguration {
         return Double.parseDouble(simulationConfiguration.getProperty("common.ratio"));
     }
 
-    public double getDelta(){
+    double getDeltaInMS(){
         return Double.parseDouble(simulationConfiguration.getProperty("delta"));
     }
+
+    public double getDelta(){
+        return Double.parseDouble(simulationConfiguration.getProperty("delta"))/1000;
+    }
+
+    public void setDelta(double delta){
+        simulationConfiguration.setProperty("delta",String.valueOf(delta));
+    }
+
+    public int getTxnLimit(){
+        return Integer.parseInt(simulationConfiguration.getProperty("txn.limit"));
+    }
+
 
     public boolean saveResults() {
         return Boolean.parseBoolean(simulationConfiguration.getProperty("save.results"));
