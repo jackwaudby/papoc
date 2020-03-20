@@ -40,40 +40,17 @@
 % \acmISBN{978-1-4503-XXXX-X/18/06}
 
 
-%%
-%% Submission ID.
-%% Use this when submitting an article to a sponsored event. You'll
-%% receive a unique submission ID from the organizers
-%% of the event, and this ID should be used as the parameter to this command.
-%%\acmSubmissionID{123-A56-BU3}
+%
+% Submission ID.
+% Use this when submitting an article to a sponsored event. You'll
+% receive a unique submission ID from the organizers
+% of the event, and this ID should be used as the parameter to this command.
+%\acmSubmissionID{123-A56-BU3}
 
-%%
-%% The majority of ACM publications use numbered citations and
-%% references.  The command \citestyle{authoryear} switches to the
-%% "author year" style.
-%%
-%% If you are preparing content for an event
-%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
-%% citations and references.
-%% Uncommenting
-%% the next command will enable that style.
-%%\citestyle{acmauthoryear}
-
-%%
-%% end of the preamble, start of the body of the document source.
 \begin{document}
 
-%%
-%% The "title" command has an optional parameter,
-%% allowing the author to define a "short title" to be used in page headers.
 \title{Preserving Reciprocal Consistency in Distributed Graph Databases}
 
-%%
-%% The "author" command and its associated commands are used to define
-%% the authors and their affiliations.
-%% Of note is the shared affiliation of the first two authors, and the
-%% "authornote" and "authornotemark" commands
-%% used to denote shared contribution to the research.
 \author{Jack Waudby}
 \email{j.waudby2@ncl.ac.uk}
 \affiliation{%
@@ -112,12 +89,11 @@
   \postcode{NE4 5TG}
 }
 
-\renewcommand{\shortauthors}{Ezhilchelvan, et al.}
+\renewcommand{\shortauthors}{Waudby, et al.}
 
 \begin{abstract}
-% In this paper the notion of \textit{reciprocal consistency}, a important constraint specific to graph databases, is formalized. If reciprocal consistency is not ensured during transaction processing, a distributed graph database can become operationally corrupt within a short time period relative to database lifetime. Reciprocal consistency can be maintained as a part of enforcing any of several known strong isolation guarantees (e.g., Snapshot Isolation) incurring well established performance costs.
 
-In our earlier work, we identified \emph{reciprocal consistency} as an important constraint specific to graph databases. If it can be lost even with a negligible small probability, subsequent inconsistent reads followed by writes can corrupt a distributed graph database within a time period extremely short relative to database lifetime. Reciprocal consistency can of course be maintained as a part of enforcing any known isolation guarantee incurring well established performance costs. However, in practice distributed graph databases are often built atop BASE databases with few or no isolation guarantees, profiting from increased performance but leaving them susceptible to rapid corruption. A lightweight protocol ensuring reciprocal consistency is presented, catering for application programmers that are interested in maintaining performance and the structural integrity of their distributed graph database. Protocol performance is evaluated through simulations.
+In our earlier work, we identified \emph{reciprocal consistency} as an important constraint specific to graph databases. If it can be lost even with a negligible small probability, subsequent inconsistent reads followed by writes can corrupt a distributed graph database within a time period extremely short relative to database lifetime. Reciprocal consistency can of course be maintained as a part of enforcing any known isolation guarantee incurring well established performance costs. However, in practice distributed graph databases are often built atop BASE databases with no isolation guarantees, profiting from increased performance but leaving them susceptible to rapid corruption. A lightweight concurrency control protocol ensuring reciprocal consistency is presented, catering for application programmers that are interested in maintaining performance and the structural integrity of their distributed graph database. Protocol performance is evaluated through simulations.
 \end{abstract}
 
 % \begin{CCSXML}
@@ -147,38 +123,25 @@ In our earlier work, we identified \emph{reciprocal consistency} as an important
 
 \ccsdesc[500]{Data Management~Graph Databases}
 \ccsdesc[300]{Data Management~Reciprocal Consistency}
+\ccsdesc[300]{Data Management~Concurrency Control}
 
-% \ccsdesc[500]{Computer systems organization~Embedded systems}
-% \ccsdesc[300]{Computer systems organization~Redundancy}
-% \ccsdesc{Computer systems organization~Robotics}
-% \ccsdesc[100]{Networks~Network reliability}
-
-\keywords{Graph Databases, Reciprocal Consistency}
-
+\keywords{Graph Databases, Reciprocal Consistency, BASE}
 
 \maketitle
 
 \section{Introduction}
 \label{sec:introduction}
 
-Recent years have seen a proliferation in the use of graph processing technologies \cite{Besta2019}. Application areas are wide reaching from healthcare, to social networks and fraud detection \cite{Eifrem2016}. Graph databases model data as a \textit{property graph} \cite{Robinson2015}, vertices represent entities and edges represent the relationships between entities. In addition, properties can be stored on both vertices and edges.
+Recent years have seen a proliferation in the use of graph processing technologies \cite{Besta2019}. Application areas are wide reaching from healthcare, to social networks and fraud detection \cite{Eifrem2016}. Graph databases model data as a \textit{property graph} \cite{Robinson2015}, vertices represent entities and edges represent the relationships between entities. In addition, properties can be stored on both vertices and edges. In the storage layer, edges are represented by two reciprocal pointers, one stored with each vertex the edge connects. This allows for bi-directional traversal and improved query performance \cite{Robinson2015}. An edge is said to be \emph{reciprocally consistent}, if its two end pointers are mutually reciprocal of each other (Details in Section \ref{sec:recipr-cons}).
 
-In the storage layer, edges are represented by two reciprocal pointers, one stored with each vertex the edge connects. This allows for bi-directional traversal and improved query performance. An edge is said to be \emph{reciprocally consistent}, if its two end pointers are mutually reciprocal of each other (Details in Section \ref{sec:recipr-cons}).
+In the wild graphs can be extremely large, sometimes in the magnitude of 100 billion edges \cite{Sahu2017}, exceeding the storage capacity of a single-node graph database and motivating the need for distributed graph databases. A common distributed graph database design pattern is to first partition graph data over several machines in a cluster; resulting in a number of \emph{distributed edges}, an edge's reciprocal pointers reside in different partitions. Then, a BASE database \cite{Pritchett2008} is used for storage and adapted with a graph processing layer (\cite{janusgraph}, \cite{TitanDB}). A caveat with this approach is BASE databases often eschew transactional guarantees in order to achieve higher performance, specifically there is often no concurrency control mechanism for operations that spans partitions.
 
-In practice graphs can be extremely large, sometimes in the magnitude of 100 billion edges \cite{Sahu2017}, exceeding the storage capacity of a single-node database and motivating the need for distributed graph databases. A common design pattern is to partition graph data over several machines in a cluster and use a BASE database \cite{Pritchett2008} for storage, adapted with a graph processing layer (\cite{janusgraph}, \cite{TitanDB}). A caveat with this approach is BASE databases in practice eschew transactional guarantees in order to achieve higher performance.
-
-Recent work \cite{Ezhilchelvan2018} and \cite{Webber2019} highlighted how reciprocal consistency can easily be violated in such a design introducing corruption into the database. Moreover, due to the \emph{Scale-Free} \cite{ScaleFree} property exhibited by many real world graphs, this corruption can propagate through the database at alarmingly rates.
-
-Preserving reciprocal consistency requires some degree of coordination between partitions in the presence of concurrent modifications. This paper proposes and analyses a light-weight protocol that ensures reciprocal consistency in operational contexts where concurrency control mechanisms are done away with for sake of performance.
-
-%The contribution of this paper is the description of a protocol that ensures reciprocal consistency, preserving structural integrity in a distributed graph database in a transaction processing setting. The protocol maintains this guarantee provided certain condition hold. If these conditions are violated corruption can still occur. The protocol's impact on the rate of database corruption and its performance is evaluated and discussed.
-
-%The key finding is whilst the protocol reduces the chance of initial corruption of clean database records, due to the scale-free topology corruption propagates alarmingly quick even for modest transaction arrival rates. This motivates the use of deterministic reciprocal consistency protocols or the use of protocols with stronger isolation guarantees, which subsume reciprocal consistency (\cite{Bailis2014}, \cite{Berenson1995}, \cite{Bernstein1987}).
+Recent work \cite{Ezhilchelvan2018} and \cite{Webber2019} highlighted how reciprocal consistency of distributed edges can be violated in such a design, introducing corruption into the database. Moreover, due to the \emph{Scale-Free} \cite{ScaleFree} property exhibited by many real world graphs, this corruption can propagate through the database at alarmingly rates. Preserving reciprocal consistency of distributed edges requires some degree of coordination between partitions in the presence of concurrent modifications. This paper proposes and analyses a lightweight protocol that ensures reciprocal consistency of distributed edges in operational contexts where traditional concurrency control mechanisms have been done away with for sake of performance.
 
 \section{Reciprocal Consistency}
 \label{sec:recipr-cons}
 
-In the property graph data model edges have direction, each edge having a pair of \emph{source} and \emph{destination} vertices. In the storage layer, edge information is stored with \textbf{both} the source and destination vertices. This facilitates bi-directional edge traversal and allows for better query performance.
+In the property graph data model edges have direction, each edge having a pair of \emph{source} and \emph{destination} vertices. In the storage layer, edge information is stored with \textbf{both} the source and destination vertices. This allows an edge to be traversed in both directions at the same cost, facilitating improved query performance.
 
 A common approach to storing graphs (arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}) is for database records to represent vertices containing both data values and an adjacency list containing edge \emph{pointers} to other vertices, Figure \ref{adj-list}. In this representation an edge has \emph{reciprocal} entries in the adjacency lists of the vertices the edge connects. A query reading either the source or destination vertex should be able to reify the edge correctly, returning consistent results. When the adjacency list entries for a given edge are mutually compatible like this, that edge is said to be \emph{reciprocally consistent}, a form of referential integrity.
 
@@ -249,11 +212,9 @@ A distributed graph database employs a shared-nothing architecture, partitioning
   \label{dist-graph}
 \end{figure}
 
-Adjacency lists can now contain edge pointers to vertices on remote servers. Maintaining reciprocal consistency for such distributed edges is challenging - especially given a common architecture employed by contemporary distributed graph databases. Often they use an existing BASE database to store data, which has been adapted with a programmatic API or query language expressed in terms of edges and vertices along with some gluecode to bind that interface to the underlying database. Superficially, opting for this design appears to be a good choice: the user has the modeling convenience of graphs with the operational characteristics from the underlying database. However, the problem with this design is the (lack of) transactional semantics are inherited from the underlying store. Using the primitives provided by BASE databases maintaining reciprocal consistency for local edges is straightforward, this is not true for distributed edges. The lack of concurrency control across partitions means it is possible that concurrent updates can interleave in a manner that violates reciprocal consistency.
+Adjacency lists can now contain edge pointers to vertices on remote servers. Maintaining reciprocal consistency for distributed edges is challenging - especially given an architecture employed by contemporary distributed graph databases (\cite{janusgraph}, \cite{TitanDB}). Often an existing BASE database is used for storage, which is then adapted with a query language expressed in terms of edges and vertices along with some gluecode to bind that interface to the underlying database - we refer to such systems as BASE distributed graph databases\footnote{Typically, each partition is replicated for fault tolerance and availability, these issues are beyond the scope of this paper.}. Superficially, opting for this design appears to be a good choice: the application programmer has the modeling convenience of graphs with the operational characteristics from the underlying BASE database.
 
-
-\section{Corruption in BASE  Distributed Graph Databases}
-\label{sec:db-corruption}
+However, the problem with this design is the (lack of) transactional semantics is inherited from the underlying database. BASE databases seldom provide guarantees for multi-operation, multi-object transactions that span partitions. This lack of concurrency control across partitions makes it possible for concurrent updates to interleave in a manner that violates reciprocal consistency of distributed edges\footnote{When operating without concurrency control it is equally possible that local edges become reciprocal consistent, however primitives provided by BASE databases are typically sufficient to ensure reciprocal consistency for local edges.}. Earlier work investigated how the lack of concurrency control across partitions in BASE distributed graph databases can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates (\cite{Ezhilchelvan2018}, \cite{Webber2019}). This process is explained in Section \ref{sec:db-corruption}.
 
 \begin{figure*}[ht]
   \centering
@@ -297,13 +258,13 @@ Adjacency lists can now contain edge pointers to vertices on remote servers. Mai
   \label{conf-scen}
 \end{figure*}
 
-Earlier work investigated how weak isolation across partitions in BASE distributed graph databases can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates (\cite{Ezhilchelvan2018}, \cite{Webber2019}).
 
-When a given transaction writes a distributed edge it must infact perform two writes, writing reciprocal information at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively. Concurrent transaction's writes to a distributed edge can interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated, Figure \ref{conf-scen}. For such edges there exists a correct and a incorrect entry. Note, the order in which the two writes take place is not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}. A graph with half-corrupted edges has suffered \emph{structural corruption}.
+\section{Corruption in BASE  Distributed Graph Databases}
+\label{sec:db-corruption}
 
-Now, if subsequent transactions read the incorrect entry of a half-corrupted edge and write further edges, \emph{semantic corruption} has been introduced into the database. Further semantic corruption spreads by the same mechanism. A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use.
+When a given transaction writes a distributed edge it must infact perform two writes, writing reciprocal entries in the adjacency lists at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively. Without sufficient concurrency control, transaction's writes to a distributed edge can interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated, Figure \ref{conf-scen}. For such edges there exists a correct and a incorrect entry. Note, the order in which the two writes take place is not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}. A graph with half-corrupted edges has suffered \emph{structural corruption}.
 
-To illustrate the process of corruption, consider two transactions $T_x$ and $T_y$. $T_x$ deletes the \emph{wrote} edge and $T_y$ appends a property \emph{year}:
+Now, if subsequent transactions read the incorrect entry of a half-corrupted edge and write further edges, \emph{semantic corruption} has been introduced into the database. Further semantic corruption spreads by the same mechanism. A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use. To illustrate the process of corruption, consider two transactions $T_x$ and $T_y$. $T_x$ deletes the \emph{wrote} edge and $T_y$ appends a property \emph{year}:
 \begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
 \textcolor{grey}{// Tx}
 \textcolor{blue}{MATCH} (a:\textcolor{green}{Person})-[w:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
@@ -315,9 +276,17 @@ To illustrate the process of corruption, consider two transactions $T_x$ and $T_
 \textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
 \textcolor{blue}{SET} w.\textcolor{red}{year} = 1937
 \end{Verbatim}
-Any interleaving in Figure \ref{conf-scen} will result in the half-corrupted edge displayed in Figure \ref{half-corrupted}.
+Any interleaving in Figure \ref{conf-scen} will result in the half-corrupted edge displayed in Figure \ref{half-corrupted}. Assume, the correct ordering of transactions is $T_y$ then $T_x$ and the edge between \emph{a} and \emph{b} should still exist. The following transaction, $T_z$, introduces semantic corruption if it starts at \emph{b} and adds a new \emph{wrote} edge to an ``unknown author'' vertex. Further corruption spreads by the same mechanism.
 
-\begin{figure}[H]
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{grey}{// Tz}
+\textcolor{blue}{MATCH} (b:\textcolor{green}{Book}),(u:Person)
+\textcolor{blue}{WHERE NOT} (:\textcolor{green}{Person})-[:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{AND} b.\textcolor{red}{name} = 'unknown'
+\textcolor{blue}{CREATE} (u)-[:\textcolor{green}{WROTE}]->(b)
+\end{Verbatim}
+
+\begin{figure}[ht!]
   \centering
   \begin{tikzpicture}[node distance=2cm]
     \node (v1) [vertex2,xshift=0cm,yshift=0cm] {\small{\texttt{a:\textcolor{green}{Person}}}};
@@ -327,32 +296,31 @@ Any interleaving in Figure \ref{conf-scen} will result in the half-corrupted edg
     \node [below of=v1,yshift=1cm] {\small{\texttt{\textcolor{red}{name}:Tolkien}}};
         \node [below of=v2,yshift=1cm] {\small{\texttt{\textcolor{red}{title}:The Hobbit}}};
 
-    \draw [thick,->,>=stealth] (0.8,0)  -- node [midway,above] {:\textcolor{green}{\small{\texttt{WROTE}}}} (2.4,0);
+    \draw [thick,->,>=stealth] (0.8,0)  -- node [midway,above] {:\textcolor{green}{\small{\texttt{WROTE}}}} node [midway,below] {\small{\texttt{\textcolor{red}{year} = 1937}}} (2.4,0);
 
   \end{tikzpicture}
-  \caption{A half-corrupted edge resulting from conflicting transactions.}
+  \caption{A half-corrupted edge.}
   \label{half-corrupted}
 \end{figure}
 
-Assume, the correct ordering of transactions is $T_y$ then $T_x$ and the edge between \emph{a} and \emph{b} should still exist. The following transaction, $T_z$, introduces semantic corruption if it starts at \emph{b} and adds a new \emph{wrote} edge to an unknown author vertex.
-
-\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
-\textcolor{grey}{// Tz}
-\textcolor{blue}{MATCH} (b:\textcolor{green}{Book}),(u:Person)
-\textcolor{blue}{WHERE NOT} (:\textcolor{green}{Person})-[:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
-\textcolor{blue}{AND} b.\textcolor{red}{name} = 'unknown'
-\textcolor{blue}{CREATE} (u)-[:\textcolor{green}{WROTE}]->(b)
-\end{Verbatim}
-%One could now imagine a read-write transaction, $T_z$ that introduces new information based on the incorrect information at vertex \emph{a}.
-
 \section{\emph{Delta} Protocol}
 
-A half-corrupted edge is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000}), which is proscribed by the weakest ANSI isolation level \textbf{Read Uncommitted}. Under Read Uncommitted the database ensures a total order on transactions, consistently ordering writes from concurrent transactions, which would prevent all interleavings in Figure \ref{conf-scen}. This is can be implemented by transactions taking long duration write locks\cite{Berenson1995}, releasing them only once the acquiring transaction has committed or aborted. To prevent deadlock a policy such as \texttt{NO_WAIT} deadlock detection is used \cite{Harding2017}. This approach is problematic in a distributed graph database as a subset of edges are traversed and modified with a high frequency e.g. critical sections of motorway in a road network, leading to high contention. Taking long duration locks on these edges significantly limits concurrency and throughput.
+A half-corrupted edge is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000}), which is proscribed by the weakest ANSI isolation level \textbf{Read Uncommitted}. Under Read Uncommitted the database ensures a total order on transactions, consistently ordering writes from concurrent transactions, which would prevent all interleavings in Figure \ref{conf-scen}.
 
-The motivation behind the \emph{Delta} protocol was to develop a lightweight protocol that prevents half-corruption at a cheaper cost. One could imagine such a protocol be ``bolted onto'' a BASE distributed graph database. Note, this protocol is solely a concurrency control mechanism for distributed edges, guarantees about vertices, local edges are left for future work, along with issues surrounding replication and atomicity.
+A straightforward solution to preventing dirty writes is for transactions to take long duration write locks \cite{Berenson1995}, releasing them only once the acquiring transaction has committed or aborted. To prevent deadlock a policy such as \texttt{NO_WAIT} deadlock detection is used, which was shown to be the optimal policy in a distributed, partitioned database \cite{Harding2017}.
 
-We leverage the fact that a transaction that writes at one end of a distributed edge, must then write the other. We then assumed that the network delay between two servers can be predicted to be some $\Delta$. All writes are temporary and assumed to be made permanent by a later atomic commitment protocol once the transaction has completed. From this, a distributed edge write is allowed to proceed provided there is no other temporary write preceding it within $\Delta$; measured as per the local clock time. Figure \ref{delta-abort} shows an instance of the protocol preventing Figure \ref{conf-scen}(c), $T_x$ overtakes $T_y$ but is aborted when arriving at $S_j$. An aborted transaction, aborts any and every previous tentative write that it may have successfully completed. This protocol avoids all conflict scenarios in Figure \ref{conf-scen} provided $\Delta$ is not exceeded. It is helpful to think of this protocol as a locking protocol with a timer, in the extreme when $\Delta$ is set to infinity the protocol is equivalent to long-duration write locks with \texttt{NO_WAIT} deadlock detection.
+This approach is problematic in a distributed graph database as a subset of distributed edges are traversed and modified with a high frequency e.g. critical sections of motorway in a road network, leading to high contention. In addition, graph transactions tend to be longer-lived than transactions in relational databases. Taking long duration locks on these frequently accessed edges significantly limits concurrency and reduces throughput. With these concerns in mind we developed the \emph{Delta} protocol, which aimed at preventing distributed edges becoming half-corrupted and hence quashing the seed of corruption. We also wanted to keep performance at levels that make using a BASE distributed graph database an attractive choice.\footnote{The $\Delta$ protocol is solely a concurrency control mechanism for distributed edges, guarantees about vertices, local edges are beyond the scope of this paper.}
 
+The protocol leverages the fact that a transaction that writes at one end of a distributed edge, must then immediately write the other end. It is then assumed that the network delay between two servers can be predicted to be some $\Delta$. All writes are temporary and assumed to be made permanent by a later atomic commitment protocol once the transaction has completed. From this, a distributed edge write is allowed to proceed provided there is no other temporary write preceding it within $\Delta$; measured as per the local clock time. Figure \ref{delta-abort} shows an instance of the protocol preventing the interleaving in Figure \ref{conf-scen} (c), $T_x$ overtakes $T_y$ but is aborted when arriving at $S_j$ as $T_y$ has already wrote tentatively within $\Delta$. An aborted transaction, aborts any and every previous tentative write that it may have successfully completed. This protocol avoids all conflict scenarios in Figure \ref{conf-scen} provided $\Delta$ is not exceeded.
+
+This protocol is strictly weaker than Read Uncommitted isolation, ensuring only writes to distributed edge are totally ordered, preserving reciprocal consistency. The benefit of this approach is reduced contention on frequently accessed distributed edges, as the time a transaction has exclusive access to a given distributed edge is decreased. However, if $\Delta$ is sufficiently large (larger than the duration of the transaction) the protocol produces outcomes equivalent to taking long-duration write locks on distributed edges with \texttt{NO_WAIT} deadlock detection.
+
+% Consider two transactions $T_1$ and $T_2$ write two distributed edges $X$ and $Y$:
+
+%  $\mathbf{T_1}: W_s(X), W_d(X), W_d(Y), W_s(Y)$ \\
+%  $\mathbf{T_2}: W_s(Y), W_d(Y), W_s(X), W_d(X)$
+
+%  Here $T_1$ and $T_2$ can interleave in a manner where for $X, T_1 \rightarrow T_2 $ and for $Y, T_2 \rightarrow T_1$.
 \begin{figure}[H]
   \centering
   \begin{tikzpicture}[node distance=2cm]
@@ -373,7 +341,7 @@ We leverage the fact that a transaction that writes at one end of a distributed 
   \label{delta-abort}
 \end{figure}
 
-If $\Delta$ is exceeded all three conflict scenarios can still occur, resulting in half-corrupted edges and the spread of semantic corruption. Figure \ref{corruption-again} displays an example when the \emph{Delta} protocol fails to maintain reciprocal consistency.
+Correctly choosing $\Delta$ is paramount, as if it is exceeded all three conflict scenarios can still occur, resulting in half-corrupted edges and the spread of semantic corruption. Figure \ref{corruption-again} displays an example when the \emph{Delta} protocol fails to maintain reciprocal consistency. The network delay between $S_i$ and $S_j$ is sufficiently large the total ordering of writes to the distributed edge is lost.
 
 \begin{figure}[H]
   \centering
@@ -385,27 +353,29 @@ If $\Delta$ is exceeded all three conflict scenarios can still occur, resulting 
         \draw [thick,->,>=stealth] (1.5,2.7) node[left] {$T_x$} -- (3.5,0.8);
     \draw [thick,<-,>=stealth] (1.5,1) -- (3.5,2.2)  node[right] {$T_y$};
 
-    \draw [thick,<->,>=stealth] (0.8,1) -- (0.8,2.2) node[midway,left] {$> \Delta$};
-    \draw [thick,<->,>=stealth] (4.2,1) -- (4.2,2.5) node[midway,right] {$> \Delta$};
+    \draw [thick,<->,>=stealth] (4.2,1) -- (4.2,2.2) node[midway,left] {$> \Delta$};
+    \draw [thick,<->,>=stealth] (0.8,1) -- (0.8,2.5) node[midway,right] {$> \Delta$};
   \end{tikzpicture}
   \caption{An example of the \emph{Delta} protocol failing to preserve reciprocal consistency.}
   \label{corruption-again}
 \end{figure}
 
-In summary, the protocol attempts to avoid corruption by aborting transactions but cannot do so in all circumstances. Two questions naturally arise regards the performance of the protocol for different values of  $\Delta$, i) how does the protocol impact on the time until operational corruption? ii) how many transactions are aborted as a result of the protocol?
+In summary, the $\Delta$ protocol attempts to prevent the occurrence of half-corrupted distributed edges by aborting transactions but if $\Delta$ is exceeded operational corruption can still occur. Two questions naturally arise regards the performance of the protocol. For different values of $\Delta$:
+\begin{itemize}
+\item Given distributed edges can still become half-corrupted if $\Delta$ is exceeded, by how much time does the protocol increase the time until operational corruption?
+\item How many transactions are aborted as a result of the protocol?
+\end{itemize}
 
 \section{Modeling}
 \label{sec:modeling}
 
-In order to answer i) the model developed in \cite{Ezhilchelvan2018} and fine-tuned in \cite{Webber2019} was extended to measure the impact of the \emph{Delta} protocol\footnote{An empirical evaluation of existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}. A summary of the model is now provided, before discussing the extensions.
+To assess the protocols impact on time to operational corruption the model developed in \cite{Ezhilchelvan2018} was extended\footnote{An implementation and empirical evaluation in an existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}. A summary of the model is now provided, before discussing the extensions.
 
-Transactions arrive in a Poisson stream with rate $\lambda$ per second. Each transaction contains a random number of read operations, $K$, followed by a single write. Edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$. For each type, a fraction $f$ are distributed edges and the remainder are local edges.
-
-At any moment in time an edge can be in one of four states:
+The system processes transactions that arrive in a Poisson stream with rate $\lambda$ per second. To simplify the model, each transaction contains a random number of read operations, $K$, followed by a single write. To model a scale-free graph, edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$. For each type, a fraction $f$ are distributed edges and the remainder are local edges. The network delay between servers was assumed to be exponentially distributed with rate $\rho$. At any moment in time an edge can be in one of four states:
 \begin{enumerate}
 \item Local and clean.
 \item Distributed and clean.
-\item Half-corrupted distributed edge arising from interleaved updates.
+\item Half-corrupted distributed edge arising from a dirty write.
 \item Semantically corrupted.
 \end{enumerate}
 The valid state transitions are given in Figure \ref{state-transitions}. Note, only distributed edges can be in state 2, but any edge, including local ones, can be in state 3.
@@ -427,78 +397,63 @@ The valid state transitions are given in Figure \ref{state-transitions}. Note, o
     \label{state-transitions}
 \end{figure}
 
-Probabilities are then derived for a given read operation returning a correct answer (states 1, 2 or the correct record in state 3) and all the reads by a given transaction returning correct answers. Then the probability of edge becoming half-corrupted $q_i$, by a given transaction arriving at time $t$ and operating on edge of type $i$ is derived. These probabilities are used to construct transition rates $a_{i,j}$ between states, which are used to simulate the process of corrupting the database and obtain estimates for the average time to corruption, $U_{\gamma}$. At time $0$, all edges are clean (free from corruption). When a certain fraction, $\gamma$, of all edges become corrupted, the database itself is said to be operationally corrupt.  Note, the model assumes crash-free hardware and bug-free software for simplicity. The reader is directed to \cite{Ezhilchelvan2018} and \cite{Webber2019} for a granular discussion of the initial model.
+Probabilities are then derived for a given read operation returning a correct answer (states 1, 2 or the correct record in state 3) and all the reads by a given transaction returning correct answers. Then the probability of edge becoming half-corrupted $q_i$, by a given transaction arriving at time $t$ and operating on edge of type $i$ is derived. These probabilities are used to construct transition rates $a_{i,j}$ between states, which are used to simulate the process of corrupting the database and obtain estimates for the time to operational corruption, $U_{\gamma}$. At time $0$, all edges are clean (free from corruption), when a certain fraction, $\gamma$, of all edges become semantically corrupted, the database itself is said to be operationally corrupt. The reader is directed to \cite{Ezhilchelvan2018} and \cite{Webber2019} for a granular discussion of the initial model.
 
-The \emph{Delta} protocol influences the rate of corruption reducing the probability a transaction corrupts an edge, $q^{new}_i$. To simplify the derivation of the new conflict probability it was assumed that messages sent from the same servers do not arrive out of order, Figure 3(c). This leaves the Figure 6 as the only source of corruption. From this the following probability can be formulated:
-$$ q^{new}_i = P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$
-The arrival times of $T_x,T_y$ are assumed exponentially distributed , $X \sim \exp (\rho)$, where $\rho = \frac{\lambda P_i}{2N_i}$, the probability of accessing a given end edge of type $i$. The transmission times $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}. The complete derivation of $q^{new}_i$ is provided in Appendix A.
+% (Appendix A)\footnote{To simplify the derivation of the new conflict probability it was assumed that messages sent from the same servers do not arrive out of order i.e. the interleaving in Figure 3(c) cannot occur.}.
 
-Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \emph{Delta} protocol? The answer depends on several parameters characterizing four systemic aspects:
+The \emph{Delta} protocol impacts the rate of corruption by reducing the probability a transaction corrupts a distributed edge, $q^{new}_i$. Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \emph{Delta} protocol? Moreover, to quantify the number of aborts, a second simulation which focused specifically on the subset of frequently accessed distributed edges was performed. The answers to these questions depends on several parameters characterizing the following systemic aspects:
 \begin{itemize}
-\item \emph{Size and topology of graph database}. Size is expressed by the total number of edges $N$, and the fraction $f$ of edges distributed across servers. We consider a common edge access patterns or topologies: a Scale-free topology, edges have different access probabilities and those that get accessed more frequently tend to be smaller in number.
+\item \emph{Database Size}. Size is expressed by the total number of edges $N$, and the fraction $f$ of distributed edges.
 \item \emph{Workload}. Measured as transactions per second (TPS). Significant for measuring $U_{\gamma}$ are: the fraction of this load that writes after reads and the number of reads that precede a write.
 \item \emph{Distributed Write Delays and Choosing $\Delta$}. The smaller the delays the less likely the bound $\Delta$ is violated. Conversely, smaller $\Delta$ is the more likely the bound $\Delta$ is violated.
 \end{itemize}
 
-In order to answer (ii), calculating the number of aborts per second for a given $\Delta$ an discrete event-based simulation was constructed. The simulation, focuses on the subset of edges with the highest access probability.
-
-
 \section{Evaluation}
 \label{sec:evaluation}
 
-The model assumes that the distributed graph database  processes many reads-followed-by-write graph queries concurrently, processing both local and distributed edges. The simulation is performed on a Scale-Free graph, such as a social network, human brain, or road network, large enough to make processing non-trivial. There are approximately 7.7 billion local edges, approximately 3.3 million distributed edges (in proportion to good graph partitioning algorithms); a graph of this size would have approximately 1 billion nodes.
+The graph analyzed consisted of seven edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7,  N_5=10^8, N_6=10^9, N_7=10^{10}$, totaling 11 billion edges, with access probabilities $p_1 =0.5, p_2 =0.25, p_3=0.13, p_4=0.06, p_5=0.03, p_6=0.02$ and $p_7 =0.01$; a graph of this size would have approximately 1 billion vertices. The number of read operations per query is geometrically distributed starting at $2$, with an average of $15$, before a write. In all edge types, a fraction $0.3$ are distributed, the remainder are local; in proportion with a good graph partitioning algorithm. The network delay between servers is exponential distributed with a rate of $200ms$. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken until operational corruption $U$, is measured in days. $U$ considered for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$; a typical graph workload comprises of 90\% read-only transactions and 10\% read-write transactions \cite{Angles2020}, hence the chosen range reflects a total workload of $\lambda = (10000, ..., 100000)$. The following $\Delta$ values were considered $\Delta = 50, 75, 100ms$.
 
-The graph consisted of seven edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7,  N_5=10^8, N_6=10^9, N_7=10^10$ with access probabilities $p_1 =0.5, p_2 =0.25, p_3=0.13, p_4=0.06, p_5=0.03, p_6=0.02$ and $p_7 =0.01$. The number of read operations per query is distributed geometrically starting at $2$, with an average of $15$, before a write. In all edge types, a fraction $0.3$ are distributed, the remainder are local. The network delay between servers is exponential distributed with a rate of $200ms$. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken until operational corruption $U$, is measured in hours. $U$ considered for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$; a typical graph workload comprises of 90\% read-only transactions and 10\% read-write transactions \cite{Angles2020}, hence the chosen range reflects the range $\lambda = (10000, ..., 100000)$. We considered 3 values of $\Delta = 1, 5, 10ms$.
+The results for measuring the impact of $\Delta$ on the time until operational corruption are given in Figure \ref{time-to-corruption-results}. Under no isolation, $U$ ranges between 500-50 days. For $50ms$ this increases to 74-1 years. For $\Delta = 75, 100ms$ the time to corruption vastly exceeds lifetime of any system making data corruption resulting from half-corrupted edges of little practical concern.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{./images/results}
-  \caption{Time until operational corruption under delta protocol}
+  \includegraphics[width=\linewidth]{./images/delta_50_75_100}
+  \caption{Time, $\log(U)$, until operational corruption ($\gamma = 0.1$) for $\Delta = 50, 75, 100ms$.}
   \Description{Graph representation.}
   \label{time-to-corruption-results}
 \end{figure}
 
-The results for measuring the impact of time until operational corruption are given in Figure \ref{time-to-corruption-results}. %The $\Delta$ has a significant on increasing the time to operational corruption for modest transaction arrival rates ($<1000$).
-
-The abort rates for $\Delta = 1, 5, 10ms$ is given in Figure \ref{aborts-results} for the most popular edge type, $N=10^4$. The simulation was ran for 10 seconds for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$.
-
+The abort rates for $\Delta = 50, 75, 100ms$ are given in Figure \ref{aborts-results} for the most popular edge type, $N=10^4$. The simulation was ran for 10 seconds for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$. For $\Delta = 50$ the abort rate varies between $1-5\%$, this increases to between $1-7\%$ and $1-9\%$ for $\Delta = 75$ and $\Delta = 100$ respectively.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{./images/aborts}
-  \caption{Aborts per seconds under protocol}
+  \includegraphics[width=\linewidth]{./images/aborts_50_75_100}
+  \caption{Aborts per seconds for $\Delta = 50, 75, 100ms$.}
   \Description{Graph representation.}
   \label{aborts-results}
 \end{figure}
 
-
 \section{Conclusions}
 
-In this paper a lightweight protocol for providing reciprocal consistency and mitigating the problem of high contention in a distributed graph database has been presented. The $\Delta$ protocol leverages the fact writes to edges always consists of two sequential writes. The result is guarantees much weaker than even Read Uncommitted isolation, the weakest ANSI isolation level. However, a mechanism to provide solely reciprocal consistency is believed to be valuable in practice. Concurrency control has been a long researched area, however to the best of our knowledge no other work has presented protocols bespoke to maintaining distributed graph databases.
+Database concurrency control has been a long researched area, however to the best of our knowledge this is first attempt at a developing protocol specific for distributed graph databases. We presented a lightweight protocol for providing reciprocal consistency and mitigating the problem of high contention in a distributed graph database. The \emph{Delta} protocol leverages the fact writes to distributed edges always consists of two sequential writes to entries in the adjacency lists of vertices the edge connects. The protocol provides guarantees weaker than Read Uncommitted isolation (the weakest ANSI isolation level). However, such a mechanism is believed to be valuable in practice, given the popularity of BASE distributed graph databases and the rate at which corruption can spread if left unchecked. Simulations indicate the protocol rules out corruption resulting from half-corrupted distributed edges in realistic database lifetime, with the abort rate being in a reasonable range. For future work, we intend on implementing the protocol to assess the validity of the simulations and measure performance against a BASE distributed graph database operating without any concurrency control. Moreover, we plan on investigating the suitability of higher isolation levels in a distributed graph database, \textbf{Read Atomic} isolation \cite{Bailis2014} seems particularly well suited.
 
-TODO: More details regards protocol performance.
-\section{Acknowledgments}
+% \appendix
+% \section{Appendix}
 
-TODO
+% Figure \ref{corruption-again} presents an interleaving when a distributed edge can become half-corrupted under the \emph{Delta} protocol.
 
+% Transaction $T_x$ arrives at $S_i$ at time $t_x$ (let $t=0$) and writes tentatively, with the message delay between servers for $T_x$ to write the edge at $S_j$ being $M_x$. Transaction $T_y$ arrives at $S_j$ at time $t_y$ ($t_y > t_x$) and writes the distributed edge, $T_y$ then takes time $M_y$ to write the edge at $S_i$. If $T_x$ arrives at $S_j$ after $t_y + \Delta$ and $T_y$ arrives at $S_i$ after $t_x + \Delta$ the edge can become half-corrupted. Letting $t_x = 0 $, the probability that $T_x$ and $T_y$ conflict can be formulated as: $$ P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$.
 
-\appendix
-\section{Appendix}
+% The arrival times of $T_x,T_y$ are assumed exponentially distributed , $T \sim \exp (\rho)$. Where, $ \rho  = \frac{\lambda P_i}{2N_i}$, the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$. The transmission times between servers $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}.
 
-Figure \ref{corruption-again} presents an interleaving when a distributed edge can become half-corrupted under the \emph{Delta} protocol.
+% % Therefore,  $$ g(y) = \delta e^{-\delta y} $$
 
-Transaction $T_x$ arrives at $S_i$ at time $t_x$ (let $t=0$) and writes tentatively, with the message delay between servers for $T_x$ to write the edge at $S_j$ being $M_x$. Transaction $T_y$ arrives at $S_j$ at time $t_y$ ($t_y > t_x$) and writes the distributed edge, $T_y$ then takes time $M_y$ to write the edge at $S_i$. If $T_x$ arrives at $S_j$ after $t_y + \Delta$ and $T_y$ arrives at $S_i$ after $t_x + \Delta$ the edge can become half-corrupted. Letting $t_x = 0 $, the probability that $T_x$ and $T_y$ conflict can be formulated as: $$ P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$.
-
-The arrival times of $T_x,T_y$ are assumed exponentially distributed , $T \sim \exp (\rho)$. Where, $ \rho  = \frac{\lambda P_i}{2N_i}$, the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$. The transmission times between servers $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}.
-
-% Therefore,  $$ g(y) = \delta e^{-\delta y} $$
-
-Therefore,
-\begin{dmath*}
-  q^{new}_{i} =  {P \left[ ( T_1 >  d + X) \cap (T_2 > d-X)  \right]} \\
-  =  \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} e^{-\delta (d-x)} dx + \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} dx  \\
-  =  e^{-2 d \delta} - \left( \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} \right) e^{-(\frac{\lambda P_i}{2 N_i}+ 2\delta)d} \\
-\end{dmath*}
+% Therefore,
+% \begin{dmath*}
+%   q^{new}_{i} =  {P \left[ ( T_1 >  d + X) \cap (T_2 > d-X)  \right]} \\
+%   =  \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} e^{-\delta (d-x)} dx + \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} dx  \\
+%   =  e^{-2 d \delta} - \left( \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} \right) e^{-(\frac{\lambda P_i}{2 N_i}+ 2\delta)d} \\
+% \end{dmath*}
 
 % To choose to bound $\Delta$ consider the probability of the message delay exceeding  $\Delta$.
 % \begin{align*}
@@ -524,12 +479,6 @@ Therefore,
 
 %  =   \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta 2 d} dx +  \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\delta d} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)x}  dx  \\
 %         =   e^{-2 d \delta} \left[1 - e^{-\frac{\lambda P_i}{2 N_i} d} \right] + \frac{\frac{\lambda P_i}{2 N_i} e^{-\delta d}}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)d} \\
-
-
-
-
-
-
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{papoc}
