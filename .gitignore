@@ -9,3 +9,5 @@ simulations/deterministic/target/*
 .Rhistory
 simulations/probabilistic/target/*
 simulations/probabilistic/.idea
+*.sav
+*.bak

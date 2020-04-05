@@ -118,7 +118,8 @@
 
 @Article{Webber2019,
   author      = {Jim Webber and Paul Ezhilchelvan and Isi Mitrani},
-  title       = {Modeling Corruption in Eventually-Consistent Graph Databases},
+  title       = {{Modeling Corruption in Eventually-Consistent Graph Databases}},
+  year        = {2},
   abstract    = {We present a model and analysis of an eventually consistent graph database where loosely cooperating servers accept concurrent updates to a partitioned, distributed graph. The model is high-fidelity and preserves design choices from contemporary graph database management systems. To explore the problem space, we use two common graph topologies as data models for realistic experimentation. The analysis reveals, even assuming completely fault-free hardware and bug-free software, that if it is possible for updates to interfere with one-another, corruption will occur and spread significantly through the graph within the production database lifetime. Using our model, database designers and operators can compute the rate of corruption for their systems and determine whether they are sufficiently dependable for their intended use.},
   date        = {2019-04-09},
   eprint      = {http://arxiv.org/abs/1904.04702v1},
