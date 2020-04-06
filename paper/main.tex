@@ -4,29 +4,12 @@
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
-
 \usepackage{xspace}
 \usepackage[labelformat=simple]{subcaption}
-\renewcommand\thesubfigure{(\alph{subfigure})}
 \usepackage{tikz}
 \usepackage{fancyvrb}
 \usepackage{xcolor}
 \usepackage{breqn}
-
-\newcommand{\tDelta}{\textsf{Delta}\xspace}
-
-\usetikzlibrary{decorations.pathmorphing}
-\tikzstyle{vertex} = [circle, minimum width=10pt,draw,inner sep=0pt]
-\tikzstyle{vertex2} = [circle, minimum width=40pt,draw,inner sep=0pt]
-\tikzstyle{server} = [rectangle, rounded corners,minimum width=2cm,minimum height=2.5cm,draw=black]
-\tikzstyle{local} = [thick,->,>=stealth]
-\tikzstyle{dist} = [thick,dashed,->,>=stealth]
-\tikzstyle{node}=[circle,draw,radius=0.3, align=center]
-
-\definecolor{grey}{rgb}{0.52, 0.52, 0.51}
-\definecolor{red}{rgb}{0.7, 0.11, 0.11}
-\definecolor{blue}{rgb}{0.0, 0.0, 0.55}
-\definecolor{green}{rgb}{0.0, 0.42, 0.24}
 
 \setcopyright{acmcopyright}
 \copyrightyear{2020}
@@ -39,8 +22,6 @@
 \acmPrice{15.00}
 % \acmISBN{978-1-4503-XXXX-X/18/06}
 
-
-%
 % Submission ID.
 % Use this when submitting an article to a sponsored event. You'll
 % receive a unique submission ID from the organizers
@@ -51,50 +32,11 @@
 
 \title{Preserving Reciprocal Consistency in Distributed Graph Databases}
 
-\author{Jack Waudby}
-\email{j.waudby2@ncl.ac.uk}
-\affiliation{%
-  \institution{Newcastle University}
-  \city{Newcastle}
-  \country{UK}
-  \postcode{NE4 5TG}
-}
-
-\author{Paul Ezhilchelvan}
-\email{paul.ezhilchelvan@ncl.ac.uk}
-\orcid{0000-0002-6190-5685}
-\affiliation{%
-  \institution{Newcastle University}
-  \city{Newcastle}
-  \country{UK}
-  \postcode{NE4 5TG}
-}
-
-\author{Jim Webber}
-\email{jim.webber@neo4j.com}
-\affiliation{%
-  \institution{Neo4j}
-  \streetaddress{Union House,182-194 Union Street}
-  \city{London}
-  \country{UK}
-  \postcode{SE1 0LH}}
-
-\author{Isi Mitrani}
-\email{isi.mitrani@ncl.ac.uk}
-\orcid{0000-0002-7797-7755}
-\affiliation{%
-  \institution{Newcastle University}
-  \city{Newcastle}
-  \country{UK}
-  \postcode{NE4 5TG}
-}
+\input{authors}
 
 \renewcommand{\shortauthors}{Waudby, et al.}
 
-\begin{abstract}
-
-In our earlier work, we identified \emph{reciprocal consistency} as an important constraint specific to graph databases. If it can be lost even with a negligible small probability, subsequent inconsistent reads followed by writes can corrupt a distributed graph database within a time period extremely short relative to database lifetime. Reciprocal consistency can of course be maintained as a part of enforcing any known isolation guarantee incurring well established performance costs. However, in practice distributed graph databases are often built atop BASE databases with no isolation guarantees, profiting from increased performance but leaving them susceptible to rapid corruption. A lightweight concurrency control protocol ensuring reciprocal consistency is presented, catering for application programmers that are interested in maintaining performance and the structural integrity of their distributed graph database. Protocol performance is evaluated through simulations.
-\end{abstract}
+\input{abstract}
 
 % \begin{CCSXML}
 % <ccs2012>
@@ -144,10 +86,6 @@ In our earlier work, we identified \emph{reciprocal consistency} as an important
 \input{evaluation}
 
 \input{conclusion}
-
-
-
-
 
 % \appendix
 % \section{Appendix}
