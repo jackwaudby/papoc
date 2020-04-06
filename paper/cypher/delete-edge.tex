@@ -1,0 +1,11 @@
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{grey}{// Tx}
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person})-[w:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{DELETE} w
+
+\textcolor{grey}{// Ty}
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person})-[w:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{SET} w.\textcolor{red}{year} = 1937
+\end{Verbatim}

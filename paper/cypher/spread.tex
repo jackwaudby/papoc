@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{grey}{// Tz}
+\textcolor{blue}{MATCH} (b:\textcolor{green}{Book}),(u:Person)
+\textcolor{blue}{WHERE NOT} (:\textcolor{green}{Person})-[:\textcolor{green}{WROTE}]->(b:\textcolor{green}{Book})
+\textcolor{blue}{AND} u.\textcolor{red}{name} = 'unknown'
+\textcolor{blue}{CREATE} (u)-[:\textcolor{green}{WROTE}]->(b)
+\end{Verbatim}

@@ -1,0 +1,14 @@
+\section{Distributed Graph Databases}
+\label{sec:distr-graph-datab}
+
+A distributed graph database employs a shared-nothing architecture, partitioning a graph between a number of loosely cooperating servers. Graph partitioning is non-trivial and a common approach is to use a $k$-balanced edge cut \cite{Huang2016}. The objective of such an approach is to minimize the proportion of edges that span partitions in a manner that balances the distribution of vertices to partitions. Intra-partition edges are referred to as \textit{local edges} and inter-partition edges are referred to as \textit{distributed edges}, Figure \ref{dist-graph}. The proportion of distributed edges is always non-negligible ranging from 25-75\% \cite{Huang2016}.
+
+\input{figures/dist-graph}
+
+Adjacency lists can now contain edge pointers to vertices on remote servers. Maintaining reciprocal consistency for distributed edges is challenging - especially given an architecture employed by contemporary distributed graph databases (\cite{janusgraph}, \cite{TitanDB}). Often an existing BASE database is used for storage, which is then adapted with a query language expressed in terms of edges and vertices along with some gluecode to bind that interface to the underlying database - we refer to such systems as BASE distributed graph databases\footnote{Typically, each partition is replicated for fault tolerance and availability, these issues are beyond the scope of this paper.}. Superficially, opting for this design appears to be a good choice: the application programmer has the modeling convenience of graphs with the operational characteristics from the underlying BASE database.
+
+However, the problem with this design is the (lack of) transactional semantics is inherited from the underlying database. BASE databases seldom provide guarantees for multi-operation, multi-object transactions that span partitions. This lack of concurrency control across partitions makes it possible for concurrent updates to interleave in a manner that violates reciprocal consistency of distributed edges\footnote{When operating without concurrency control it is equally possible that local edges become reciprocal consistent, however primitives provided by BASE databases are typically sufficient to ensure reciprocal consistency for local edges.}. Earlier work investigated how the lack of concurrency control across partitions can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates (\cite{Ezhilchelvan2018}, \cite{Webber2019}). This process is explained in Section \ref{sec:db-corruption}.
+
+\input{figures/conflict-scenarios}
+
+\input{figures/half-corrupted-edge}

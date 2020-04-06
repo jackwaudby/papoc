@@ -1,0 +1,24 @@
+\section{Evaluation}
+\label{sec:evaluation}
+
+The graph analyzed consisted of seven edge types, $N_1=10^4, N_2=10^5, N_3=10^6, N_4=10^7,  N_5=10^8, N_6=10^9, N_7=10^{10}$, totaling 11 billion edges, with access probabilities $p_1 =0.5, p_2 =0.25, p_3=0.13, p_4=0.06, p_5=0.03, p_6=0.02$ and $p_7 =0.01$; a graph of this size would have approximately 1 billion vertices. The number of read operations per query is geometrically distributed starting at $2$, with an average of $15$, before a write. In all edge types, a fraction $0.3$ are distributed, the remainder are local; in proportion with a good graph partitioning algorithm. The network delay between servers is exponential distributed with a rate of $200ms$. The database is initial clean and considered to be corrupted when $10$\% ($\gamma = 0.1$) of all edges are corrupted. The time taken until operational corruption $U$, is measured in days. $U$ considered for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$; a typical graph workload comprises of 90\% read-only transactions and 10\% read-write transactions \cite{Angles2020}, hence the chosen range reflects a total workload of $\lambda = (10000, ..., 100000)$. The following $\Delta$ values were considered $\Delta = 50, 75, 100ms$.
+
+The results for measuring the impact of $\Delta$ on the time until operational corruption are given in Figure \ref{time-to-corruption-results}. Under no isolation, $U$ ranges between 500-50 days. For $50ms$ this increases to 74-1 years. For $\Delta = 75, 100ms$ the time to corruption vastly exceeds lifetime of any system making data corruption resulting from half-corrupted edges of little practical concern.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{./figures/delta_50_75_100}
+  \caption{Time, $\log(U)$, until operational corruption ($\gamma = 0.1$) for $\Delta = 50, 75, 100ms$.}
+  \Description{Graph representation.}
+  \label{time-to-corruption-results}
+\end{figure}
+
+The abort rates for $\Delta = 50, 75, 100ms$ are given in Figure \ref{aborts-results} for the most popular edge type, $N=10^4$. The simulation was ran for 10 seconds for a range of transaction arrival rates, $\lambda = (1000, ..., 10000)$. For $\Delta = 50$ the abort rate varies between $1-5\%$, this increases to between $1-7\%$ and $1-9\%$ for $\Delta = 75$ and $\Delta = 100$ respectively.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{./figures/aborts_50_75_100}
+  \caption{Aborts per seconds for $\Delta = 50, 75, 100ms$.}
+  \Description{Graph representation.}
+  \label{aborts-results}
+\end{figure}

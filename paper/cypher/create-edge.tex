@@ -1,0 +1,5 @@
+\begin{Verbatim}[commandchars=\\\{\},fontsize=\small,xleftmargin=.2in]
+\textcolor{blue}{MATCH} (a:\textcolor{green}{Person}), (b:\textcolor{green}{Book})
+\textcolor{blue}{WHERE} a.\textcolor{red}{name} = 'Tolkien' \textcolor{blue}{AND} b.\textcolor{red}{title} = 'The Hobbit'
+\textcolor{blue}{CREATE} (a)-[w:\textcolor{green}{WROTE}]->(b)
+\end{Verbatim}
