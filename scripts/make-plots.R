@@ -34,6 +34,7 @@ a=ggplot(data=aborts, aes(x=tps,y=collisions,linetype=delta,color=delta)) +
     theme_few()
 a
 
+ggsave(a, filename = "aborts.pdf",  bg = "transparent")
 
 
 # load time to corruption data in 
@@ -79,6 +80,7 @@ p=ggplot(data=df, aes(x=lam,y=U,linetype=type,color=type)) +
     scale_y_continuous(name="log(U)",breaks=seq(0,40,5)) + 
     theme_few()
 p
+ggsave(p, filename = "./paper/figures/delta.pdf",  bg = "transparent")
 
 
 dev.off()
