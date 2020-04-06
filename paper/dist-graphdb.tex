@@ -1,7 +1,12 @@
 \section{Distributed Graph Databases}
 \label{sec:distr-graph-datab}
 
-A distributed graph database employs a shared-nothing architecture, partitioning a graph between a number of loosely cooperating servers. Graph partitioning is non-trivial and a common approach is to use a $k$-balanced edge cut \cite{Huang2016}. The objective of such an approach is to minimize the proportion of edges that span partitions in a manner that balances the distribution of vertices to partitions. Intra-partition edges are referred to as \textit{local edges} and inter-partition edges are referred to as \textit{distributed edges}, Figure \ref{dist-graph}. The proportion of distributed edges is always non-negligible ranging from 25-75\% \cite{Huang2016}.
+A distributed graph database employs a shared-nothing architecture, partitioning a graph between a number of loosely cooperating servers.
+Graph partitioning is non-trivial and a common approach is to use a $k$-balanced edge cut \cite{Huang2016}.
+The objective of such an approach is to minimize the proportion of edges that span partitions in a manner that balances the distribution of vertices to partitions.
+Figure \ref{dist-graph} depicts a graph database partitioned across 3 servers, $S1$, $S2$ and $S3$.
+Intra-partition edges are referred to as \textit{local edges} and inter-partition edges are referred to as \textit{distributed edges} (shown with dashed lines in Figure \ref{dist-graph}).
+The proportion of distributed edges is always non-negligible ranging from 25-75\% \cite{Huang2016}.
 
 \input{figures/dist-graph}
 

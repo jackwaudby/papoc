@@ -1,13 +1,20 @@
 \section{Reciprocal Consistency}
 \label{sec:recipr-cons}
 
-In the property graph data model edges have direction, each edge having a pair of \emph{source} and \emph{destination} vertices. In the storage layer, edge information is stored with \textbf{both} the source and destination vertices. This allows an edge to be traversed in both directions at the same cost, facilitating improved query performance.
+In the property graph data model edges have direction, each edge having a pair of \emph{source} and \emph{destination} vertices.
+In the storage layer, edge information is stored with \textbf{both} the source and destination vertices.
+This, as we explain next, allows an edge to be traversed in both directions and thus facilitates improved query performance.
 
-A common approach to storing graphs (arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}) is for database records to represent vertices containing both properties and an adjacency list containing edge \emph{pointers} to other vertices, Figure \ref{adj-list}. Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit. It is expressed using vertices \emph{a} and \emph{b}, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from \emph{a} (source) to \emph{b} (destination).
+A common approach to storing graphs (arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}) is given in Figure \ref{adj-list}.
+A vertex is represented by a record that contains one or more vertex properties and a sequence of edge pointers (each shown simply as edge in Figure \ref{adj-list}) pointing to other vertices.
+This sequence of edge pointers is referred to as an adjacency list.
+
+Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit.
+It is expressed using vertices \emph{a} and \emph{b}, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from \emph{a} (source) to \emph{b} (destination).
 
 Using openCypher \cite{openCypher} this can be represented by:
 \input{cypher/create-edge}
 
-Adjacency lists of both \emph{a} and \emph{b} record information about the edge and this information is mutually reciprocal (or inverse) of each other: \emph{a}'s list will indicate `\emph{a} \emph{wrote} \emph{b}' while \emph{b}'s will have `\emph{b} \emph{written} by \emph{a}', Figure \ref{reciprocally-consistent-edge}. Thus, a query `list all titles by the author who wrote The Hobbit' can be answered starting at (destination vertex) \emph{b} and then traversing to (source vertex) \emph{a}, even though the edge is ``directed'' from \emph{a} to \emph{b} at model level abstraction. When the adjacency list entries for a given edge are mutually compatible like this, that edge is said to be \emph{reciprocally consistent}, a form of referential integrity. A query can read either the source or destination vertex and is able to reify the edge correctly, returning consistent results.
+Adjacency lists of both \emph{a} and \emph{b} record information about the edge and this information is reciprocal (or inverse) of each other: \emph{a}'s list will indicate `\emph{a} \emph{wrote} \emph{b}' while \emph{b}'s will have `\emph{b} \emph{written} by \emph{a}', Figure \ref{reciprocally-consistent-edge}. Thus, a query `list all titles by the author who wrote The Hobbit' can be answered starting at (destination vertex) \emph{b} and then traversing to (source vertex) \emph{a}, even though the edge is ``directed'' from \emph{a} to \emph{b} at model level abstraction. When the adjacency list entries for a given edge are mutually compatible like this, that edge is said to be \emph{reciprocally consistent}, a form of referential integrity. A query can read either the source or destination vertex and is able to reify the edge correctly, returning consistent results.
 
 \input{figures/reciprocally-consistent-edge}
