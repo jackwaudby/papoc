@@ -1,18 +1,44 @@
-% commands
-\renewcommand\thesubfigure{(\alph{subfigure})}
-\newcommand{\tDelta}{\textsf{Delta}\xspace}
+    % commands
+    \renewcommand\thesubfigure{(\alph{subfigure})}
+    \newcommand{\tDelta}{\textsf{Delta}\xspace}
 
-% tikz
-\usetikzlibrary{decorations.pathmorphing}
-\tikzstyle{vertex} = [circle, minimum width=10pt,draw,inner sep=0pt]
-\tikzstyle{big_vertex} = [circle, minimum width=40pt,draw,inner sep=0pt]
-\tikzstyle{server} = [rectangle, rounded corners,minimum width=2cm,minimum height=2.5cm,draw=black]
-\tikzstyle{local} = [thick,->,>=stealth]
-\tikzstyle{dist} = [thick,dashed,->,>=stealth]
-\tikzstyle{node}=[circle,draw,radius=0.3, align=center]
+    % tikz
+    \usetikzlibrary{decorations.pathmorphing}
+    \tikzstyle{vertex} = [circle, minimum width=10pt,draw,inner sep=0pt]
+    \tikzstyle{big_vertex} = [circle, minimum width=40pt,draw,inner sep=0pt]
+    \tikzstyle{server} = [rectangle, rounded corners,minimum width=2cm,minimum height=2.5cm,draw=black]
+    \tikzstyle{local} = [thick,->,>=stealth]
+    \tikzstyle{dist} = [thick,dashed,->,>=stealth]
+    \tikzstyle{node}=[circle,draw,radius=0.3, align=center]
 
-% colours
-\definecolor{grey}{rgb}{0.52, 0.52, 0.51}
-\definecolor{red}{rgb}{0.7, 0.11, 0.11}
-\definecolor{blue}{rgb}{0.0, 0.0, 0.55}
-\definecolor{green}{rgb}{0.0, 0.42, 0.24}
+    % colours
+    \definecolor{grey}{rgb}{0.52, 0.52, 0.51}
+    \definecolor{red}{rgb}{0.7, 0.11, 0.11}
+    \definecolor{blue}{rgb}{0.0, 0.0, 0.55}
+    \definecolor{green}{rgb}{0.0, 0.42, 0.24}
+
+            \def\record(#1,#2,#3,#4,#5,#6){
+              \node (v) [draw,black,minimum height=0.7cm,minimum width=1cm,text width=0.2\linewidth,xshift=-6cm,align=center,yshift=#1cm] {#2};
+
+            \node (b) [draw,black,minimum height=0.7cm,minimum width=11.4cm,text width=0.2\linewidth,xshift=1.4cm,yshift=#1cm] {};
+
+            \draw[thick,->] (v) -- (b);
+
+            \node (i1)  [draw,black,minimum height=0.5cm,minimum width=2cm,xshift=-2.8cm,text width=0.3\linewidth,yshift=#1cm,align=center] {#3};
+
+            \node (i2)  [draw,black,minimum height=0.5cm,minimum width=2.5cm,xshift=0.9cm,right of=i1,yshift=0cm,text width=0.3\linewidth,align=center] {#4};
+
+            \node (i3)  [draw,black,minimum height=0.5cm,minimum width=2.5cm,xshift=0.75cm,right of=i2,yshift=0cm,align=center] {#5};
+
+            \node (i4)  [draw,black,minimum height=0.5cm,minimum width=2.5cm,xshift=0.6cm,right of=i3,yshift=0cm,align=center] {#6};
+
+        }
+
+\def\spaceRecord(#1){
+\node (v) [black,minimum height=0.7cm,minimum width=1cm,text width=0.2\linewidth,xshift=-6cm,align=center,yshift=#1cm] {$\vdots$};
+\node (b) [black,minimum height=0.7cm,minimum width=11.4cm,text width=0.2\linewidth,xshift=1.4cm,yshift=#1cm] {};
+\node (i1)  [black,minimum height=0.5cm,minimum width=2cm,xshift=-2.8cm,text width=0.3\linewidth,yshift=#1cm,align=center] {$\vdots$};
+\node (i2)  [black,minimum height=0.5cm,minimum width=2.5cm,xshift=0.9cm,right of=i1,yshift=0cm,text width=0.3\linewidth,align=center] {$\vdots$};
+\node (i3)  [minimum height=0.5cm,minimum width=2.5cm,xshift=0.75cm,right of=i2,yshift=0cm,align=center] {$\vdots$};
+\node (i4)  [minimum height=0.5cm,minimum width=2.5cm,xshift=0.6cm,right of=i3,yshift=0cm,align=center] {$\vdots$};
+}

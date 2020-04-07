@@ -15,5 +15,3 @@ Adjacency lists can now contain edge pointers to vertices on remote servers. Mai
 However, the problem with this design is the (lack of) transactional semantics is inherited from the underlying database. BASE databases seldom provide guarantees for multi-operation, multi-object transactions that span partitions. This lack of concurrency control across partitions makes it possible for concurrent updates to interleave in a manner that violates reciprocal consistency of distributed edges\footnote{When operating without concurrency control it is equally possible that local edges become reciprocal consistent, however primitives provided by BASE databases are typically sufficient to ensure reciprocal consistency for local edges.}. Earlier work investigated how the lack of concurrency control across partitions can undermine reciprocal consistency of distributed edges, causing irreversible corruption that spreads at alarmingly rates (\cite{Ezhilchelvan2018}, \cite{Webber2019}). This process is explained in Section \ref{sec:db-corruption}.
 
 \input{figures/conflict-scenarios}
-
-\input{figures/half-corrupted-edge}

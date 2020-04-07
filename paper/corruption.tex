@@ -1,6 +1,19 @@
 \section{Corruption in the Absence of Concurrency Control}
 \label{sec:db-corruption}
 
+This section must be re-structured for ease of understanding.
+First talk about transactions interleaving - narrative using fig 4.
+Explain: Interleavings lead to half-corruption.
+Exemplify half corruption using the first half of the code example.
+Relate to dirty write..
+Explain how half-corruption then leads to  sematic corruption and operational corruption.
+Exemplify it using the second half of the coded example - unknown author.
+Finally relate half corruption to Read Uncommitted.
+
+
+
+\input{figures/hc}
+
 When a given transaction writes a distributed edge it must infact perform two writes, writing reciprocal entries in the adjacency lists at the source and the destination vertices, which say reside on servers $S_i$ and $S_j$ respectively. Without concurrency control, transaction's writes to a distributed edge can interleave producing a distributed edge in a \emph{half-corrupted} state - reciprocal consistency has been violated. Possible interleavings of concurrent writes to a distributed edge are given in Figure \ref{conf-scen}. A half-corrupted edge is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000}), which is proscribed by the weakest ANSI isolation level \textbf{Read Uncommitted}. Under Read Uncommitted the database ensures a total order on transactions, consistently ordering writes from concurrent transactions, which would prevent all interleavings in Figure \ref{conf-scen}.
 
 For such half-corrupted edges there exists a correct and a incorrect entry. Note, the order in which the two writes take place is not constrained. For example, when updating an edge between \emph{a} and \emph{b} it is equally likely to update \emph{a} then \emph{b} as it is to update \emph{b} then \emph{a}. A graph with half-corrupted edges has suffered \emph{structural corruption}.
