@@ -1,0 +1,36 @@
+\section{Corruption in the Absence of Concurrency Control}
+\label{sec:db-corruption}
+
+Consider the edge \texttt{(a)-[:\textcolor{green}{WROTE}]->(b)} spans servers $S_i$ and $S_j$.
+When a transaction writes a distributed edge there are two important facts to consider:
+\begin{enumerate}
+\item Two write operations are performed, writing reciprocal entries in the adjacency lists of \emph{a} and \emph{b}.
+\item Write order is unconstrained, a transaction is equally likely to write \emph{a} then \emph{b} as it is to write \emph{b} then \emph{a}.
+\end{enumerate}
+
+Without concurrency control, transactions $T_x$ and $T_y$ that write the distributed edge can interleave in the following ways:
+\begin{enumerate}[(i)]
+\item $T_x$ begins writing the distributed edge before $T_y$ but at opposite ends, transactions cross in the network and at $S_i$, $T_x \rightarrow T_y$ and at $S_y$, $T_y \rightarrow T_x$, Figure \ref{fig:a}.
+\item $T_y$ begins writing the distributed edge before $T_x$ but at opposite ends, transactions cross in the network and at $S_i$, $T_x \rightarrow T_y$ and at $S_j$, $T_y \rightarrow T_x$, Figure \ref{fig:b}.
+\item $T_x$ and $T_y$ perform their first writes at $S_i$, $T_x \rightarrow T_y$, but overlap in the network and arrive out-of-order at $S_j$, $T_y \rightarrow T_x$, Figure \ref{fig:c}.
+\end{enumerate}
+
+Each interleaving in Figure \ref{fig:conf} results in a \emph{half-corrupted} distributed edge - reciprocal consistency has been violated.
+A half-corrupted edge is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000})
+To illustrate the process of half-corruption, consider $T_x$ deletes the \emph{wrote} edge and $T_y$ appends a property \emph{year}:
+\input{cypher/delete-edge.tex}
+\input{figures/hc}
+Each interleaving results in the distributed edge in Figure \ref{hc-edge}, reciprocal consistency is clearly violated.
+We say a graph with half-corrupted edges has suffered \emph{structural corruption}.
+
+Assume we know the correct state of the distributed edge to be \texttt{(a)-[:\textcolor{green}{WROTE}]->(b)} with \texttt{\textcolor{red}{year} = 1937}, then there exists correct and incorrect entries for edge, visible in Figure \ref{hc-db-rep}.
+When a transaction reads an edge it does not check both entries that constitute the edge are reciprocal consistent.
+Therefore, a subsequent transactions can read the incorrect entry of a half-corrupted edge and write further edges, introducing \emph{semantic corruption} into the database.
+Further semantic corruption spreads by the same mechanism.
+A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use.
+
+For example, $T_z$, introduces semantic corruption if it reads \emph{b} and adds a new \emph{wrote} edge to an ``unknown author'' vertex.
+
+\input{cypher/spread.tex}
+
+If the database provides the ANSI isolation level \textbf{Read Uncommitted}, the database consistently orders writes from concurrent transactions, which would prevent all interleavings in Figure \ref{fig:conf} and the spread of semantic corruption

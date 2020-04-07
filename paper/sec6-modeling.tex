@@ -1,9 +1,15 @@
 \section{Modeling}
 \label{sec:modeling}
 
-To assess the protocols impact on time to operational corruption the model developed in \cite{Ezhilchelvan2018} was extended\footnote{An implementation and empirical evaluation in an existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}. A summary of the model is now provided, before discussing the extensions.
+To assess the protocols impact on time to operational corruption the model developed in \cite{Ezhilchelvan2018} was extended\footnote{An implementation and empirical evaluation in an existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}.
+A summary of the model is now provided, before discussing the extensions.
 
-The system processes transactions that arrive in a Poisson stream with rate $\lambda$ per second. To simplify the model, each transaction contains a random number of read operations, $K$, followed by a single write. To model a scale-free graph, edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$. For each type, a fraction $f$ are distributed edges and the remainder are local edges. The network delay between servers was assumed to be exponentially distributed with rate $\rho$. At any moment in time an edge can be in one of four states:
+The system processes transactions that arrive in a Poisson stream with rate $\lambda$ per second.
+To simplify the model, each transaction contains a random number of read operations, $K$, followed by a single write.
+To model a scale-free graph, edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$.
+For each type, a fraction $f$ are distributed edges and the remainder are local edges.
+The delay $d$ between a transaction completing a tentative write at one end and starting at another end is exponential distributed with a mean of $\mu$.
+At any moment in time an edge can be in one of four states:
 \begin{enumerate}
 \item Local and clean.
 \item Distributed and clean.
@@ -33,7 +39,7 @@ Probabilities are then derived for a given read operation returning a correct an
 
 % (Appendix A)\footnote{To simplify the derivation of the new conflict probability it was assumed that messages sent from the same servers do not arrive out of order i.e. the interleaving in Figure 3(c) cannot occur.}.
 
-The \tDelta protocol impacts the rate of corruption by reducing the probability a transaction corrupts a distributed edge, $q^{new}_i$. Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \tDelta protocol? Moreover, to quantify the number of aborts, a second simulation which focused specifically on the subset of frequently accessed distributed edges was performed. The answers to these questions depends on several parameters characterizing the following systemic aspects:
+The \tDelta protocol impacts the rate of corruption by reducing the probability a given transaction half-corrupts a distributed edge, $q^{new}_i$, see Appendix \ref{sec:deriv-confl-prob} for the derivation. Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \tDelta protocol? Moreover, to quantify the number of aborts, a second simulation which focused specifically on the subset of frequently accessed distributed edges was performed. The answers to these questions depends on several parameters characterizing the following systemic aspects:
 \begin{itemize}
 \item \emph{Database Size}. Size is expressed by the total number of edges $N$, and the fraction $f$ of distributed edges.
 \item \emph{Workload}. Measured as transactions per second (TPS). Significant for measuring $U_{\gamma}$ are: the fraction of this load that writes after reads and the number of reads that precede a write.

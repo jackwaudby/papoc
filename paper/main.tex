@@ -4,6 +4,7 @@
   \providecommand\BibTeX{{%
     \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
+\usepackage{enumerate}
 \usepackage{xspace}
 \usepackage[labelformat=simple]{subcaption}
 \usepackage{tikz}
@@ -73,67 +74,29 @@
 
 \maketitle
 
-\input{introduction}
+\input{sec1-introduction}
 
-\input{reciprocal-consistency}
+\input{sec2-reciprocal-consistency}
 
-\input{dist-graphdb}
+\input{sec3-dist-graphdb}
 
-\input{corruption}
+\input{sec4-corruption}
 
-\input{delta}
+\input{sec5-delta}
 
-\input{modeling}
+\input{sec6-modeling}
 
-\input{evaluation}
+\input{sec7-evaluation}
 
-\input{conclusion}
+\input{sec8-conclusion}
 
-% \appendix
-% \section{Appendix}
-
-% Figure \ref{corruption-again} presents an interleaving when a distributed edge can become half-corrupted under the \tDelta protocol.
-
-% Transaction $T_x$ arrives at $S_i$ at time $t_x$ (let $t=0$) and writes tentatively, with the message delay between servers for $T_x$ to write the edge at $S_j$ being $M_x$. Transaction $T_y$ arrives at $S_j$ at time $t_y$ ($t_y > t_x$) and writes the distributed edge, $T_y$ then takes time $M_y$ to write the edge at $S_i$. If $T_x$ arrives at $S_j$ after $t_y + \Delta$ and $T_y$ arrives at $S_i$ after $t_x + \Delta$ the edge can become half-corrupted. Letting $t_x = 0 $, the probability that $T_x$ and $T_y$ conflict can be formulated as: $$ P \left[ ( T_x >  \Delta + X) \cap (T_y > \Delta-X) \right]$$.
-
-% The arrival times of $T_x,T_y$ are assumed exponentially distributed , $T \sim \exp (\rho)$. Where, $ \rho  = \frac{\lambda P_i}{2N_i}$, the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$. The transmission times between servers $M_1, M_2 \sim \exp (\delta)$ and are \emph{iid}.
-
-% % Therefore,  $$ g(y) = \delta e^{-\delta y} $$
-
-% Therefore,
-% \begin{dmath*}
-%   q^{new}_{i} =  {P \left[ ( T_1 >  d + X) \cap (T_2 > d-X)  \right]} \\
-%   =  \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} e^{-\delta (d-x)} dx + \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta (d+x)} dx  \\
-%   =  e^{-2 d \delta} - \left( \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} \right) e^{-(\frac{\lambda P_i}{2 N_i}+ 2\delta)d} \\
-% \end{dmath*}
-
-% To choose to bound $\Delta$ consider the probability of the message delay exceeding  $\Delta$.
-% \begin{align*}
-%   P \left[ M > \Delta \right] & = 1 - e^{- \delta \Delta} \\
-%   1 - e^{- \delta \Delta} & = 1 - \epsilon \\
-%   e^{- \delta d} & = \epsilon  \\
-%   \Delta & = - \frac{\ln(\epsilon)}{\delta}
-% \end{align*}
-
-% Substituting $\Delta$ into the above equation yields the conflict probability for a given $\epsilon$. For example, $ e = 0.001$ gives a $0.001$ \% probability the message delay exceeds $\Delta$, for this  $\Delta = 0.035s$
-% \begin{align}
-%   e^{- \lambda d} =  e^{-\delta d \frac{\lambda}{\delta}} = \epsilon^{\frac{\lambda}{\delta}} \label{eqn7}
-% \end{align}
-% Therefore, from (\ref{eqn5} and  (\ref{eqn7}),
-% \begin{align}
-%   & = \epsilon^2 - \frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-\frac{\lambda P_i}{2 N_i} d} \epsilon^2 \\
-%   & = \epsilon^2 \left[1 -\frac{\delta}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-\frac{\lambda P_i}{2 N_i} d} \right]
-% \end{align}
-
-
-%Where, $ E \left[ T_1 \right] = E \left[ T_2\right] = \frac{1}{\delta}$.
-%Therefore, $$ f(x) =\frac{\lambda P_i}{2N_i} e^{-\frac{\lambda P_i}{2N_i} x} $$
-
-%  =   \int_{0}^{d}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} x} e^{-\delta 2 d} dx +  \int_{d}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\delta d} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)x}  dx  \\
-%         =   e^{-2 d \delta} \left[1 - e^{-\frac{\lambda P_i}{2 N_i} d} \right] + \frac{\frac{\lambda P_i}{2 N_i} e^{-\delta d}}{\frac{\lambda P_i}{2 N_i} + \delta} e^{-(\frac{\lambda P_i}{2 N_i} + \delta)d} \\
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{papoc}
+
+\appendix
+
+\input{appendix}
 
 \end{document}
 \endinput
