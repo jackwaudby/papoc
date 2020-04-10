@@ -1,36 +1,36 @@
-\section{Corruption in the Absence of Concurrency Control}
+\section{Reciprocally Inconsistent Distributed Edges}
 \label{sec:db-corruption}
 
-Consider the edge \texttt{(a)-[:\textcolor{green}{WROTE}]->(b)} spans servers $S_i$ and $S_j$.
-When a transaction writes a distributed edge there are two important facts to consider:
+Suppose that the edge \texttt{(a)-[:\textcolor{green}{WROTE}]->(b)} is a distributed edge, with vertices \emph{a} and \emph{b} in servers $S_i$ and $S_j , j\neq i$,  respectively.
+When a transaction writes this edge $ab$,
 \begin{enumerate}
-\item Two write operations are performed, writing reciprocal entries in the adjacency lists of \emph{a} and \emph{b}.
-\item Write order is unconstrained, a transaction is equally likely to write \emph{a} then \emph{b} as it is to write \emph{b} then \emph{a}.
+\item two writes are performed: reciprocal entries in the adjacency lists of both \emph{a} and \emph{b} are updated, and
+\item write order is unconstrained: a transaction is equally likely to write \emph{a} then \emph{b} as it is to write \emph{b} then \emph{a}.
 \end{enumerate}
 
-Without concurrency control, transactions $T_x$ and $T_y$ that write the distributed edge can interleave in the following ways:
-\begin{enumerate}[(i)]
-\item $T_x$ begins writing the distributed edge before $T_y$ but at opposite ends, transactions cross in the network and at $S_i$, $T_x \rightarrow T_y$ and at $S_y$, $T_y \rightarrow T_x$, Figure \ref{fig:a}.
-\item $T_y$ begins writing the distributed edge before $T_x$ but at opposite ends, transactions cross in the network and at $S_i$, $T_x \rightarrow T_y$ and at $S_j$, $T_y \rightarrow T_x$, Figure \ref{fig:b}.
-\item $T_x$ and $T_y$ perform their first writes at $S_i$, $T_x \rightarrow T_y$, but overlap in the network and arrive out-of-order at $S_j$, $T_y \rightarrow T_x$, Figure \ref{fig:c}.
+Concurrent transactions $T_x$ and $T_y$ can interleave in the following three ways and each one is depicted in Fig \ref{fig:conf}:
+\begin{enumerate}[(a)]
+\item $T_x$ starts before $T_y$; it writes $a$ at $S_i$ first and then proceeds to $S_j$ across the network; $T_y$ operates the other way round, beginning with $S_j$ and proceeding to $S_i$ (see Fig \ref{fig:a}). The net effect is:  $T_x \rightarrow T_y$ at $S_i$ and at  $T_y \rightarrow T_x$ at $S_j$, where  $T \rightarrow T'$ at $S$ denotes that $T$ \emph{precedes} $T'$ at server $S$.
+\item Same as the previous case, except that $T_y$ starts earlier than $T_x$ (see Fig \ref{fig:b}).
+\item Same net effect as in previous two cases, except that both $T_x$ and $T_y$ start their first writes at $S_i$, $T_x \rightarrow T_y$, but $T_y$ overtakes $T_x$ in reaching $S_j$ where $T_y \rightarrow T_x$ (see Fig \ref{fig:c}).
 \end{enumerate}
 
-Each interleaving in Figure \ref{fig:conf} results in a \emph{half-corrupted} distributed edge - reciprocal consistency has been violated.
-A half-corrupted edge is an example of a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000})
-To illustrate the process of half-corruption, consider $T_x$ deletes the \emph{wrote} edge and $T_y$ appends a property \emph{year}:
+We could envisage three more corresponding cases (a') - (c') where the roles of $T_x$ and $T_y$ in cases (a) - (c) are simply interchanged; e.g., in case (a'), $T_y$ starts before $T_x$, writes $a$ at $S_i$ first and then proceeds to $S_j$ across the network; $T_x$ operates the other way round, beginning with $S_j$ and proceeding to $S_i$. Thus, there are only 6 ways concurrent $T_x$ and $T_y$ can interleave. The arguments we make based on cases (a) - (c) of Fig \ref{fig:conf} equally apply, by symmetry, to cases (a') - (c') and so, for brevity, we will not consider the latter.
+
+At the end of each case in Fig \ref{fig:conf}, the last update on $a$ is by $T_y$ and that on $b$ is by $T_x$. Unless updates of $T_x$ and $T_y$ are commutative, $ab$ cannot be reciprocally consistent. As an example, suppose that $T_x$ deletes the \emph{wrote} edge while $T_y$ concurrently appends a property \emph{year}:
 \input{cypher/delete-edge.tex}
 \input{figures/hc}
-Each interleaving results in the distributed edge in Figure \ref{hc-edge}, reciprocal consistency is clearly violated.
-We say a graph with half-corrupted edges has suffered \emph{structural corruption}.
+The interleaving patterns depicted in Fig \ref{fig:conf} leave $ab$ reciprocally inconsistent, as shown in Fig \ref{hc}.
 
-Assume we know the correct state of the distributed edge to be \texttt{(a)-[:\textcolor{green}{WROTE}]->(b)} with \texttt{\textcolor{red}{year} = 1937}, then there exists correct and incorrect entries for edge, visible in Figure \ref{hc-db-rep}.
-When a transaction reads an edge it does not check both entries that constitute the edge are reciprocal consistent.
-Therefore, a subsequent transactions can read the incorrect entry of a half-corrupted edge and write further edges, introducing \emph{semantic corruption} into the database.
-Further semantic corruption spreads by the same mechanism.
-A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupted state, rendering the database of little practical use.
+When $T_x$ and $T_y$ do not interleave,  either $T_y \rightarrow T_x$ or $T_x \rightarrow T_y$ holds at both servers $S_i$ and $S_j$; in that case, the last update on \emph{both} $a$ and $b$ would be by either $T_x$ or $T_y$, respectively. That is, when transactions update at both ends of $ab$  in \emph{some} arbitrarily chosen but identical order, $ab$ is left  reciprocally consistent after each transaction's update.
 
-For example, $T_z$, introduces semantic corruption if it reads \emph{b} and adds a new \emph{wrote} edge to an ``unknown author'' vertex.
+When interleaving updates leave $ab$ reciprocally inconsistent, $ab$ can be said to have become \emph{half-corrupted} because if $T_y \rightarrow T_x$ is the chosen order between $T_y$ and $T_x$, then the edge pointer in $b$ of $ab$ is in error; otherwise, the edge pointer in $a$ is erroneous. Thus, a reciprocally inconsistent edge $ab$ certainly has a corrupt half but the question of which half is corrupt has been left open.
 
-\input{cypher/spread.tex}
+Suppose that a future transaction $T_w$ \emph{first} reads the edge pointer of reciprocally in consistent $ab$, say, at vertex $a$. (Note that when $T_w$ reads any edge, it does not check for reciprocally consistency). At that moment, $T_w$ (implicitly) chooses the order $T_x \rightarrow T_y$ and thereby invalidates the other order $T_y \rightarrow T_x$ that prevails at vertex $b$. Thus, from that moment onward, the $b$ end of edge $ab$ becomes the corrupt end.
 
-If the database provides the ANSI isolation level \textbf{Read Uncommitted}, the database consistently orders writes from concurrent transactions, which would prevent all interleavings in Figure \ref{fig:conf} and the spread of semantic corruption
+If no transaction ever reads the edge pointer at vertex $b$, then the order $T_x \rightarrow T_y$ effectively prevails and the half-corruption of $ab$ remains invisible to the rest of the database. However, if $T_z$ is to subsequently read the edge pointer at $b$ and write another edge based on what it read, i.e., The Hobbit has unknown author, then it is introducing updates not consistent with what $T_w$ read earlier; it thus introduces \emph{semantic corruption} into the database. Further writes based on reading semantically corrupt data also spread corruption.
+
+A database is said to be \emph{operationally corrupt} when a significant proportion of its data records are in a semantically corrupt state. As stated earlier, we had shown that 10\%  of a distributed graph database can become semantically corrupt well within the system lifetime itself (\cite{Ezhilchelvan2018}, \cite{Webber2019}).
+
+Two more relevant remarks on past works:
+a half-corrupted edge is due to a \emph{dirty write} (ANSI \emph{P0} \cite{Berenson1995}, Adya \emph{G0} \cite{Adya2000}) in the context of distributed graph databases. If the database provides the ANSI isolation level \emph{Read Uncommitted}, it will identically order the writes of concurrent transactions and this would prevent all interleaving patterns shown in Fig \ref{fig:conf} and thus avert half-corruption altogether.

@@ -1,16 +1,36 @@
 \section{Derivation of Conflict Probability}
 \label{sec:deriv-confl-prob}
 
-Under the \tDelta protocol each interleaving in Figure \ref{fig:conf} can be given a probability of occurring. Figures \ref{fig:a} and \ref{fig:b} are equivalent and can be summarized by the same probability. Letting $t_x = 0$, the probability that $T_x$ and $T_y$ conflict can be formulated as: $$ P \left[ ( T_x >  \Delta + D) \cap (T_y > \Delta-D) \right]$$ The arrival times of $T_x,T_y$ are assumed exponentially distributed, $T \sim \exp (\rho)$.
-Where, $ \rho  = \frac{\lambda P_i}{2N_i}$, the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$.
-The probability of $d$ exceeding $\Delta$ is exponentially distributed with mean $\mu$, $D\sim \exp(\mu)$.
-Therefore,
+Edges are divided into $T$ types, $i= 1,2, ..., T$. The number of edges of type $i$ is represented by $n_i$. 
+The probability an edge of type $i$ is accessed by a given operation is represented by $p_i$.  (Exact values taken by $n_i$ and $p_i$ are given in Section \ref{sec:evaluation}.)
+
+The arrival time, $a$, of a transaction, $T$, is assumed exponentially distributed with rate $\rho$. 
+Where $ \rho  = \frac{\lambda p_i}{2n_i}$ is the probability a given operation accesses the incorrect record of a half-corrupted edge of type $i$.
+
+The time interval, $d$, that elapses between transaction $T$ completing its tentative write at one end of a distributed edge and starting at another end, is assumed exponentially distributed with rate $\mu$.
+
+Consider the interleaving in Fig \ref{fig:a} and assume $T_x$ arrives at $S_i$ at time $0$. Then, $T_x$ arrives at $S_j$ after $d_x$. Assume $T_y$ arrives at $S_j$ at some time $a$. Then, $T_y$ arrives at $S_i$ at time $a  + d_y$.
+Half-corruption occurs under the following conditions:
+\begin{enumerate}[(i)]
+    \item At $S_j$, $d_x > a + \Delta$
+    \item At $S_i$, $a  + d_y > \Delta$
+\end{enumerate}
+The conflict probability, $q^{new}_{i}$, for edge type $i$ is given by,
+
 \begin{dmath*}
-   q^{new}_{i} =  {P \left[ ( T_1 >  \Delta + D) \cap (T_2 > \Delta-D)  \right]} \\
-   =  \int_{0}^{\Delta}  \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} d} e^{-\mu (\Delta+d)} e^{-\mu (\Delta-d)} dd + \int_{\Delta}^{\infty} \frac{\lambda P_i}{2 N_i} e^{-\frac{\lambda P_i}{2 N_i} d} e^{-\mu (\Delta+d)} dd  \\
-   =  e^{-2 d \mu} - \left( \frac{\mu}{\frac{\lambda P_i}{2 N_i} + \mu} \right) e^{-(\frac{\lambda P_i}{2 N_i}+ 2\mu)d} \\
+   q^{new}_{i} =  {P \left[ (d_x > a + \Delta) \cap (d_y > \Delta - a)  \right]} \\
+   =  \int_{0}^{\Delta}  \frac{\lambda p_i}{2 n_i} e^{-\frac{\lambda p_i}{2 n_i} a} e^{-\mu (\Delta+a)} e^{-\mu (\Delta-a)} da + \int_{\Delta}^{\infty} \frac{\lambda p_i}{2 n_i} e^{-\frac{\lambda p_i}{2 n_i} a} e^{-\mu (\Delta+a)} da \\
+   =  e^{-2 a \mu} - \left( \frac{\mu}{\frac{\lambda p_i}{2 n_i} + \mu} \right) e^{-(\frac{\lambda p_i}{2 n_i}+ 2\mu)a} \\
  \end{dmath*}
-To simply the derivation of the conflict probability we assume FIFO which rules out the interleaving in Figure \ref{fig:c}.
+%The interleaving in Fig \ref{fig:a} is equivalent to Fig \ref{fig:b} where $T_y$ arrives at $S_j$ at time $0$ and $S_i$ at $a$ while $T_x$ starts in $S_i$ at $a$ and reaches $S_j$ at $a+d_x$. 
+
+From the perspective of computing $q^{new}_{i}$, Fig \ref{fig:b} is equivalent to Fig \ref{fig:a} and the above expression holds.  
+Fig \ref{fig:c} is ignored as it can be avoided by having all first tentative updates on a given edge at a given server (e.g., at $S_i$) be numbered sequentially and having the second tentative attempts  processed (at $S_j$) as per this sequence number. 
+
+
+%To simply the derivation of the conflict probability we assume FIFO which rules out the interleaving in Figure \ref{fig:c}.
+
+
  % To choose to bound $\Delta$ consider the probability of the message delay exceeding  $\Delta$.
  % \begin{align*}
  %   P \left[ M > \Delta \right] & = 1 - e^{- \delta \Delta} \\

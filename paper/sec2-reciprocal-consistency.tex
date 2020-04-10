@@ -1,23 +1,24 @@
 \section{Reciprocal Consistency}
 \label{sec:recipr-cons}
 
-In the property graph data model edges have direction, each edge having a pair of \emph{source} and \emph{destination} vertices.
-In the storage layer, edge information is stored with \textbf{both} the source and destination vertices.
-This, as we explain next, allows an edge to be traversed in both directions and thus facilitates improved query performance.
+In the property graph data model, edges have direction and each edge runs from a \emph{source} vertex to a \emph{destination} vertex.
+In the storage layer, however, edge directionality does not exist;  \textbf{both} the source and the destination vertices store information about each other.
+This allows edge traversal to be bidirectional and speeds up query performance.
 
-Consider, for example, the statement that Tolkien \textit{wrote} The Hobbit.
-It is expressed using vertices \emph{a} and \emph{b}, for Tolkien and The Hobbit respectively, and an edge \textit{wrote} running from \emph{a} (source) to \emph{b} (destination). The logical representation of the edge is given in Figure \ref{rc-edge}.
-
-Using openCypher \cite{openCypher} this can be represented by:
+Consider, for example, the statement: ``Tolkien \textit{wrote} The Hobbit''.
+It is expressed using vertex  \emph{a} for Tolkien and vertex \emph{b} for The Hobbit, and an edge \textit{wrote} running from \emph{a} (source) to \emph{b} (destination). Corresponding openCypher \cite{openCypher} code is given below and Fig \ref{rc-edge} shows the model level view.% of edge $ab$.
 \input{cypher/create-edge}
 
-A common internal representation of this graph (arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}) is given in Figure \ref{db-rep}.
-A vertex is represented by a record that contains one or more vertex properties and a sequence of edge pointers pointing to other vertices.
-This sequence of edge pointers is referred to as an adjacency list.
+Fig \ref{db-rep} depicts the internal representation of a graph arising from JanusGraph \cite{janusgraph} and TitanDB \cite{TitanDB}.
+A vertex, such as \emph{a}, is represented by a record that contains one or more properties of that vertex, followed by a sequence of \emph{edge pointers} pointing to all those vertices to which this vertex is related either as a source or a destination.
+The sequence of edge pointers is also called the \emph{adjacency list}.
 
-From Figure \ref{db-rep} it can be seen adjacency lists of both \emph{a} and \emph{b} record information about the edge and this information is reciprocal (or inverse) of each other: \emph{a}'s list will indicate `\emph{a} \emph{wrote} \emph{b}' while \emph{b}'s will have `\emph{b} \emph{written} by \emph{a}'.
-Thus, a query `list all titles by the author who wrote The Hobbit' can be answered starting at (destination vertex) \emph{b} and then traversing to (source vertex) \emph{a}, even though the edge is ``directed'' from \emph{a} to \emph{b} at model level abstraction.
-When the adjacency list entries for a given edge are mutually compatible like this, that edge is said to be \emph{reciprocally consistent}, a form of referential integrity.
-A query can read either the source or destination vertex and is able to reify the edge correctly, returning consistent results.
+It can be seen in Fig \ref{db-rep} that \emph{a}'s adjacency list has an edge pointer entry that stores `\emph{a} \emph{wrote} \emph{b}' while \emph{b}'s list has a corresponding entry storing the reciprocal (or inverse) information `\emph{b} \emph{written} by \emph{a}'.
+When the adjacency list entries for a given edge refer to each other in a complementary manner like this, that edge is said to be \emph{reciprocally consistent}.
+
+Consider a query: `list all titles by the author who wrote The Hobbit'.
+This query needs to start from \emph{b} which represents the only entity specified explicitly in it.
+Thanks to the reciprocal information in \emph{b}, it can reach \emph{a} from \emph{b}, even though edge \emph{ab} is  ``directed'' from \emph{a} to \emph{b}, and then compile the necessary list from \emph{a}.
+Note that reciprocal consistency is assumed to be prevail when a query reads only the source or destination vertex of an edge.
 
 \input{figures/rc}

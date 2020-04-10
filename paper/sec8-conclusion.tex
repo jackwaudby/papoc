@@ -1,3 +1,13 @@
-\section{Conclusions}
+\section{Conclusions}\label{sec:Conclude}
 
-Database concurrency control has been a long researched area, however to the best of our knowledge this is first attempt at a developing protocol specific for distributed graph databases. We presented a lightweight protocol for providing reciprocal consistency and mitigating the problem of high contention in a distributed graph database. The \tDelta protocol leverages the fact writes to distributed edges always consists of two sequential writes to entries in the adjacency lists of vertices the edge connects. The protocol provides guarantees weaker than Read Uncommitted isolation (the weakest ANSI isolation level). However, such a mechanism is believed to be valuable in practice, given the popularity of BASE distributed graph databases and the rate at which corruption can spread if left unchecked. Simulations indicate the protocol rules out corruption resulting from half-corrupted distributed edges in realistic database lifetime, with the abort rate being in a reasonable range. For future work, we intend on implementing the protocol to assess the validity of the simulations and measure performance against a BASE distributed graph database operating without any concurrency control. Moreover, we plan on investigating the suitability of higher isolation levels in a distributed graph database, \textbf{Read Atomic} isolation \cite{Bailis2014} seems particularly well suited.
+Database concurrency control has been a long researched area, however to the best of our knowledge this is first attempt at developing a protocol specific for distributed graph databases.
+We presented a lightweight protocol for providing reciprocal consistency and mitigating the problem of high contention in a distributed graph database.
+
+The \tDelta protocol leverages the fact that writes to distributed edges always consist of two sequential writes to entries in the adjacency lists of vertices the edge connects.
+Since it is concerned only with edges (and not vertices) in a graph, it provides guarantees weaker than Read Uncommitted isolation (the weakest ANSI isolation level).
+
+The protocol that is presented and performance-evaluated here, we believe,  valuable in practice given the popularity of BASE distributed graph databases and the rate at which semantic corruption can spread if reciprocal consistency is left unchecked.
+Simulations indicate that when $\Delta$ values are chosen to be reasonably large, the protocol rules out corruption resulting from half-corrupted distributed edges while keeping the abort rate considerably small.
+
+For future work, we intend on implementing the protocol to assess the validity of the simulations and to enable comparisons with traditional lock-based approaches.
+Moreover, we plan on investigating the suitability of higher isolation levels in a distributed graph database, \textbf{Read Atomic} isolation \cite{Bailis2014} seems particularly well suited.

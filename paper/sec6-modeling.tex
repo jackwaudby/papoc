@@ -1,45 +1,40 @@
-\section{Modeling}
+\section{Performance Evaluation Strategies}
 \label{sec:modeling}
 
-To assess the protocols impact on time to operational corruption the model developed in \cite{Ezhilchelvan2018} was extended\footnote{An implementation and empirical evaluation in an existing systems was not performed as such an evaluation would have been impractical (need to compare database state at end of experiment with the linearizable truth), slow (real time) and expensive (requiring many hours of storage and compute time)}.
-A summary of the model is now provided, before discussing the extensions.
+To assess the time to operational corruption, we reused the model that we developed in \cite{Ezhilchelvan2018} and adapted it for the \tDelta protocol.
+For completeness, the model is briefly explained first before we discuss the adaptation.
+We note that an empirical evaluation of the time to operational corruption using a real system would be impractical due to the sheer length of time and the cost it would take to run the experiment.
+(For certain values of $\Delta$, the model predicts anywhere between 1-75 years for operational corruption! Details are to follow.)
 
-The system processes transactions that arrive in a Poisson stream with rate $\lambda$ per second.
-To simplify the model, each transaction contains a random number of read operations, $K$, followed by a single write.
-To model a scale-free graph, edges in the database are divided into $T$ types, popular edges types have higher access probabilities but are a smaller proportion of the total number of edges, $N$.
-For each type, a fraction $f$ are distributed edges and the remainder are local edges.
-The delay $d$ between a transaction completing a tentative write at one end and starting at another end is exponential distributed with a mean of $\mu$.
-At any moment in time an edge can be in one of four states:
+The model of \cite{Ezhilchelvan2018} assumes that transactions arrive in a Poisson stream with rate $\lambda$ transactions per second (TPS, for short).
+Each transaction performs a random number ($K$) of read operations and then updates a single edge.
+
+To model a scale-free graph, edges in the distributed database are divided into $T$ types, $i = 1, 2, \ldots, T$.
+Type-1 edges represent the most popular edges to be accessed by transactions and type-$T$ edges are the least popular. Popular edges are smaller in number compared to the less popular ones.
+$N$ denotes the total number of edges in the database.
+For all edge types, a fraction $f$ are distributed.
+
+At time $0$, all edges are assumed to be clean (free from corruption); thereafter, an edge can be in one of four states:
 \begin{enumerate}
 \item Local and clean.
 \item Distributed and clean.
-\item Half-corrupted distributed edge arising from a dirty write.
-\item Semantically corrupted.
+\item Distributed and half-corrupted.
+\item Local or distributed and semantically corrupted.
 \end{enumerate}
-% The valid state transitions are given in Figure \ref{state-transitions}. Note, only distributed edges can be in state 2, but any edge, including local ones, can be in state 3.
 
-% \begin{figure}[ht]
-%   \centering
-%     \begin{tikzpicture}[node distance=2cm]
-%       \node (n0) [circle,draw,radius=0.3, align=center,green] {0};
-%       \node (n1) [circle,draw,radius=0.3, align=center, right of=n0,green] {1};
-%       \node (n2) [circle,draw,radius=0.3, align=center, right of=n1,orange] {2};
-%       \node (n3) [circle,draw,radius=0.3, align=center, right of=n2,red] {3};
-%       \draw [thick,<-,>=stealth,green] (n1) to[out=-45,in=-135]  node[below] {$a_{2,1}$} (n2);
-%       \draw [thick,->,>=stealth,orange] (n1)  to[out=0,in=-180] node[below] {$a_{1,2}$} (n2);
-%       \draw  [thick,->,>=stealth,red] (n2) to[out=-45,in=-135]  node[below] {$a_{2,3}$} (n3);
-%       \draw  [thick,->,>=stealth,red]  (n0) to[out=70,in=110] node[above] {$a_{0,3}$} (n3);
-%       \draw  [thick,->,>=stealth,red]  (n1) to[out=45,in=135] node[above] {$a_{1,3}$} (n3);
-%     \end{tikzpicture}
-%     \caption{Edge transitions between clean, half-corrupted and semantically corrupt states.}
-%     \label{state-transitions}
-% \end{figure}
+The delay $d$ is the time interval that elapses between a transaction completing its tentative write at one end of a distributed edge and starting at another end. It constitutes the window for concurrent transactions to interleave as portrayed in Fig \ref{fig:conf}. It is assumed to be exponentially distributed with mean $ 1/ \mu$ (i.e., at rate $\mu$).
 
-Probabilities are then derived for a given read operation returning a correct answer (states 1, 2 or the correct record in state 3) and all the reads by a given transaction returning correct answers. Then the probability of edge becoming half-corrupted $q_i$, by a given transaction arriving at time $t$ and operating on edge of type $i$ is derived. These probabilities are used to construct transition rates $a_{i,j}$ between states, which are used to simulate the process of corrupting the database and obtain estimates for the time to operational corruption, $U_{\gamma}$. At time $0$, all edges are clean (free from corruption), when a certain fraction, $\gamma$, of all edges become semantically corrupted, the database itself is said to be operationally corrupt. The reader is directed to \cite{Ezhilchelvan2018} and \cite{Webber2019} for a granular discussion of the initial model.
+The model parameters now enable us to compute the probability $q_i$ that a transaction updating a clean type-$i$ distributed edge, leaves it half-corrupted, in the absence of any concurrency control mechanism. (Our earlier work in \cite{Ezhilchelvan2018} assumes no concurrency control). These probabilities, $q_i, 1 \leq i \leq T$, are then used to compute transition rates $a_{j,k}$ between state $j$ to $k$, $1 \leq j,k \leq 4$. (Since local and distributed edges are fixed, $a_{1,2} = a_{2,1} = 0$.)
 
-% (Appendix A)\footnote{To simplify the derivation of the new conflict probability it was assumed that messages sent from the same servers do not arrive out of order i.e. the interleaving in Figure 3(c) cannot occur.}.
+The rates $a_{j,k}$ are in turn used to simulate the spread of corruption within the database to estimate the first passage time $U_{\gamma}$  for a fraction ${\gamma}$ of $N$ edges to enter the state 4. (When $\gamma N$ edges become semantically corrupt, the database becomes operationally corrupt.)  The reader is directed to \cite{Ezhilchelvan2018} and \cite{Webber2019} for a granular discussion of the initial model.
 
-The \tDelta protocol impacts the rate of corruption by reducing the probability a given transaction half-corrupts a distributed edge, $q^{new}_i$, see Appendix \ref{sec:deriv-confl-prob} for the derivation. Of interest, therefore, is: how large or small is the value of $U_\gamma$ for a given value of $\gamma$ under the \tDelta protocol? Moreover, to quantify the number of aborts, a second simulation which focused specifically on the subset of frequently accessed distributed edges was performed. The answers to these questions depends on several parameters characterizing the following systemic aspects:
+\paragraph{\tDelta Protocol Adaptation}
+Our concurrency protocol reduces the probabilities $q_i, 1 \leq i \leq T$ and we compute $q^{new}_i$ as shown in Appendix \ref{sec:deriv-confl-prob}.
+The new probabilities $q^{new}_i$ are used in the model and simulations of \cite{Ezhilchelvan2018} to estimate $U_{\gamma}$.
+
+\paragraph{Number of aborts per second.} To evaluate this metric for various values of $\Delta$, a second simulation that focuses specifically on the subset of most frequently accessed distributed edges was performed.
+
+Note that both metrics that we set out to evaluate will be influenced by several parameters that characterize the database and other aspects:
 \begin{itemize}
 \item \emph{Database Size}. Size is expressed by the total number of edges $N$, and the fraction $f$ of distributed edges.
 \item \emph{Workload}. Measured as transactions per second (TPS). Significant for measuring $U_{\gamma}$ are: the fraction of this load that writes after reads and the number of reads that precede a write.

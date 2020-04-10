@@ -1,0 +1,59 @@
+\let\oldref\ref
+\renewcommand{\ref}[1]{(\oldref{#1})}
+
+\subsection{Correctness Proof}
+\label{sec:correctness-proof}
+
+Lets us first define formally the \emph{interference-free} writing of a distributed edge.
+Consider an edge \emph{e} connecting a vertex at server $S_i$ to another vertex at $S_j$.
+
+Let $T_x$ (tentatively) write the ends of \emph{e} without aborting.
+Let $Pred_{x}^{i}$ and $Pred_{x}^{j}$ denote the set of transactions that $T_x$ observes to have already carried out (tentatively) writes of \emph{e} at $S_i$ and $S_j$ respectively.
+Let \emph{aborted} denote the set of all transactions that have aborted until any given moment
+
+\paragraph{Definition}
+$T_x$ updating \emph{e} is interference-free if and only if  $Pred_{x}^{i}-aborted =  Pred_{x}^{j}-aborted$.
+Intuitively, the set of transactions that precede $T_x$ in writing \emph{e} and do not abort, must be identical at both ends of \emph{e}.
+It is easy to see that when all updates of \emph{e} are interference-free as per this definition, they are identically ordered at both ends of \emph{e}.
+(A simple proof by induction is possible and omitted here).
+
+Referring to Figure \ref{fig:conf}, $Pred_{x}^{i} = \{ \phi \} \neq \{ T_y\} =  Pred_{x}^{j}$ for all three cases that depict the three possible interleavings of transactions.
+
+\paragraph{Lemma}
+If a transaction $T_x$ follows \tDelta protocol in writing a distributed edge \emph{e}, then its write of \emph{e} is guaranteed to be interference-free provided (i) the bound estimate $\delta$ holds and (ii) $\Delta > \delta$.
+
+\paragraph{Proof by Contradiction}
+Let us hypothesize that there exists a $T_y : T_y \in (Pred_{x}^{i}-aborted) \land T_y \in (Pred_{x}^{j}-aborted)$.
+
+Let $t_{x}^{i}$ and $t_{x}^{j}$ be the (global) time instances when $T_x$ writes \emph{e} at $S_i$ and $S_j$ respectively.
+Let $t_{y}^{i}$ and $t_{y}^{j}$ be the corresponding instances for $T_y$.
+By the hypothesis, $t_{x}^{i} - t_{y}^{i} \geq \Delta$.
+Since $\delta$ holds,
+\begin{align}
+  & t_{x}^{i} - \delta <  t_{x}^{j} <  t_{x}^{i} + \delta  \label{eq:1} \\
+  & t_{y}^{i} - \delta <  t_{y}^{j} <  t_{y}^{i} + \delta \label{eq:2}
+\end{align}
+Negating inequality \ref{eq:2} and re-arranging,
+\begin{equation}
+  - t_{y}^{i} - \delta < - t_{y}^{j} < - t_{y}^{i} + \delta \label{eq:3}
+\end{equation}
+Combining \ref{eq:1} and \ref{eq:3}:
+\begin{equation}
+  t_{x}^{i} - t_{y}^{i} - 2 \delta < t_{x}^{j} - t_{y}^{j} < t_{x}^{i} - t_{y}^{i} + 2 \delta\label{eq:4}
+\end{equation}
+Let $k = t_{x}^{i} - t_{y}^{i} + 2 \delta$ and $k>0$ because $t_{x}^{i} - t_{y}^{i} \geq \Delta$ and $2\delta>0$. So,
+\begin{equation}
+  t_{x}^{i} - t_{y}^{i} - 2 \delta \geq \Delta - 2 \delta
+\end{equation}
+Rewriting \ref{eq:4}:
+\begin{equation}
+  \Delta  -2 \delta < t_{x}^{j} - t_{y}^{j} < k \label{eq:5}
+\end{equation}
+$(\Delta - 2 \delta) \geq 0 $ only if $\Delta$ is chosen to be $\geq 2\delta$; otherwise $(\Delta - 2 \delta) < 0 $.
+So there are two cases in analyzing \ref{eq:5}:
+\paragraph{Case 1}
+When $\Delta > 2 \delta$, \ref{eq:5} reduces to $0 < t_{x}^{j} - t_{y}^{j} < k $ and implies that $T_x$ must observe $T_y$ as its predecessor at $S_j$ -- contradicting the hypothesis that $T_y \not\in Pred_{x}^{j} and T_y \not\in aborted$.
+\paragraph{Case 2}
+When  $\Delta < 2 \delta$, \ref{eq:5} becomes $0 < t_{y}^{j} - t_{x}^{j} < 2 \delta - \Delta$.
+Since $\Delta > \delta, (2\delta - \Delta) < \delta < \Delta$.
+This means that $T_y$ observes $T_x$ as its predecessor at $S_j$ but within $\Delta$ and must therefore abort. But the hypothesis that $T_y \in Pred_{x}^{i}-aborted$ assumes $T_y \not\in aborted$. So, the supposed hypothesis cannot be correct and \tDelta protocol is proven correct.
