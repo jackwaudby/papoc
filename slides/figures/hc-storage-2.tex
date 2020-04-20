@@ -1,0 +1,44 @@
+\begin{tikzpicture}[node distance=2cm,scale=0.6,every node/.style={transform shape}]
+
+% 1
+
+  \node (v1) [draw,black,minimum height=0.9cm,minimum width=1cm,text width=0.4\linewidth,xshift=-4.3cm,align=center,yshift=0cm] {\small{\texttt{vertex id}}};
+
+    \node (b1) [draw,black,minimum height=0.9cm,minimum width=8cm,text width=0.2\linewidth,xshift=1.4cm,yshift=0cm] {};
+    \draw[thick,->] (v1) -- (b1);
+
+      \node (1i1)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=-0.5cm,text width=0.6\linewidth,yshift=0cm,align=center] {\small{\texttt{edge}}};
+
+      \node (1i2)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=1.9cm,yshift=0cm,right of = 1i1,text width=0.6\linewidth,align=center] {\small{\texttt{edge}}};
+
+  % 2
+  \node (v) [draw,black,minimum height=0.9cm,minimum width=1cm,text width=0.4\linewidth,xshift=-4.3cm,align=center,yshift=-1.2cm] {\small{\texttt{b:Book}}};
+
+  \node (b) [draw,black,minimum height=0.9cm,minimum width=8cm,text width=0.2\linewidth,xshift=1.4cm,yshift=-1.2cm] {};
+    \draw[thick,->] (v) -- (b);
+
+  \node (2i1)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=-0.5cm,text width=0.6\linewidth,yshift=-1.2cm,align=center] {\small{\texttt{title:The \hspace{-0.15cm} Hobbit}}};
+
+  \node (2i2)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=1.9cm,yshift=0cm,right of = 2i1,text width=0.6\linewidth,align=center,fill=red!30] {};
+
+
+  % 3
+   \node (3v1) [black,minimum height=0.9cm,minimum width=1cm,text width=0.4\linewidth,xshift=-4.3cm,align=center,yshift=-2.1cm] {$\vdots$};
+
+      \node (3i1)  [black,minimum height=0.6cm,minimum width=2cm,xshift=-0.5cm,text width=0.6\linewidth,yshift=-2.1cm,align=center] {$\vdots$};
+
+  \node (3i2)  [black,minimum height=0.6cm,minimum width=2.1cm,xshift=1.9cm,yshift=0cm,right of = 3i1,text width=0.6\linewidth,align=center] {$\vdots$};
+
+  % 4
+
+    \node (4v1) [draw,black,minimum height=0.9cm,minimum width=1cm,text width=0.4\linewidth,xshift=-4.3cm,align=center,yshift=-3.2cm] {\small{\texttt{vertex id}}};
+
+    \node (4b1) [draw,black,minimum height=0.9cm,minimum width=8cm,text width=0.2\linewidth,xshift=1.4cm,yshift=-3.2cm] {};
+    \draw[thick,->] (4v1) -- (4b1);
+
+      \node (4i1)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=-0.5cm,text width=0.6\linewidth,yshift=-3.2cm,align=center] {\small{\texttt{property}}};
+
+  \node (4i2)  [draw,black,minimum height=0.6cm,minimum width=2cm,xshift=1.9cm,yshift=0cm,right of = 4i1,text width=0.6\linewidth,align=center] {\small{\texttt{edge}}};
+
+
+\end{tikzpicture}

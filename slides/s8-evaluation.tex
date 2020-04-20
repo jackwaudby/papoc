@@ -1,0 +1,30 @@
+\begin{frame}
+  \frametitle{Performance Evaluation}
+  Two metrics the following two metrics for various values of $\Delta$:
+  \begin{itemize}
+  \item Time taken for 10\% of a large database to be corrupt
+    \item Number of transactions aborted per second
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Time until 10\% database corruption2 $\boldsymbol{log(U)}$ vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
+  \begin{center}
+    For $\Delta = 50ms$, time taken for 10\% database corruption is between to $1$-$75$ years
+  \end{center}
+    \begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.5]{./figures/delta}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Fraction of Aborts vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
+  \begin{center}
+    For $\Delta = 50 ms$, the fraction of aborts is between 1 − 5\%
+  \end{center}
+    \begin{figure}[h!]
+    \centering
+    \includegraphics[scale=0.5]{./figures/aborts}
+  \end{figure}
+\end{frame}

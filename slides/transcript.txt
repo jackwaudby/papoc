@@ -1,0 +1,49 @@
+Slide 1
+
++ Graph databases model data as a property graph.
++
++ Properties can be stored on both vertices and edges and similar vertices are grouped with labels.
++ In this data model edges have direction, as can be seen in Figure 1 Tolkien wrote The Hobbit.
+
+Slide 2
+
++ In the storage layer, however, edge directionality does not exist; both the source and the destination vertices store information about each other.
++ In Figure 2 each vertex, is represented by a record that contains the properties and the vertex's adjacency list.
++ The edge between Tolkien and The Hobbit has entries in each of the vertices adjacency list
++ This allows edge traversal to be bidirectional and speeds up query performance.
+
+
+Slide 3
+
++ When the adjacency list entries for a given edge refer to each other in a complementary manner like this, that edge is said to be reciprocally consistent.
++ Note that reciprocal consistency is assumed to be prevail when a query reads only the source or destination vertex of an edge.
+
+Slide 4
++ In practice graphs can be extremely large sometimes in the magnitude of 100 billion edges, exceeding the storage capacity of a single-node graph database and motivating the need for distributed graph databases.
++ Use a graph partitioning algorithm to partition the graph across multiple machines in a cluster, with partitions replicated for fault-tolerance and availability
++ This in Graph partitioning inevitably leads to distributed edges
+
+
+Slide 5
++ Guaranteeing reciprocal consistency for distributed edges is challenging. Especially given a common implementation strategy.
++ A NoSQL database is used for storage, adapted with a graph processing layer.
++ NoSQL databases seldom provide guarantees for multi-operation, multi-object transactions that span partitions.
++ Due to the lack of concurrency control across partitions, concurrent updates of distributed edges can interleave and violate reciprocal consistency.
+
+Slide 6
+
++ An example of this is..
++ This corruption spreads, give numbers
+
+Slide 7
+
++ When designing a solution we considered 2 aspects common to graph databases.
+- Firstly, a subset of edges are traversed and modified with a very high frequency. For example, certain stretches of motorway in a road network.
+- Long-lived transactions
+
+Slide 7b
++ Developed the delta protocol that focuses solely on maintaining reciprocal consistency of distributed edges
++ Lock free
++ Based on key assumption
+
+Slide 8

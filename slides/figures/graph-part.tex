@@ -1,0 +1,43 @@
+\begin{figure}[h!]
+  \centering
+  \resizebox{0.6\textwidth}{!}{
+    \begin{tikzpicture}[node distance=2cm]
+      \node (s1) [server,label=$S_i$] {};
+      \node (s2) [server, right of=s1,xshift=2cm,yshift=2cm,label=$S_j$] {};
+      \node (s3) [server, right of=s1,xshift=6cm,label=$S_k$] {};
+
+      \node (v1) [vertex,xshift=-0.5cm,yshift=-1.5cm] {};
+      \node (v2) [vertex, above of=v1,xshift=-0.3cm,yshift=1cm] {};
+      \node (v3) [vertex, above of=v1,xshift=0.6cm] {};
+      \node (v4) [vertex, below right of=v3,xshift=-0.5cm,yshift=-0.3cm] {};
+      \node (v5) [vertex, above right of=v3,xshift=-0.6cm,yshift=-0.5cm] {};
+      \node (v6) [vertex, right of=v5,xshift=0.3cm,yshift=0.8cm] {};
+      \node (v7) [vertex, below of=v6, xshift=1cm,yshift=0.4cm] {};
+      \node (v8) [vertex, right of=v4, yshift=-0.3cm,xshift=4.5cm] {};
+      \node (v9) [vertex, above of=v8,xshift=-0.4cm,yshift=-0.5cm] {};
+      \node (v10) [vertex, above of=v9,xshift=-2.5cm,yshift=-0.3cm] {};
+      \node (v11) [vertex, right of=v9,yshift=0.5cm,xshift=-0.3cm] {};
+      \node (v12) [vertex, above of=v11,yshift=-1cm,xshift=-1cm] {};
+      \node (v13) [vertex, above right of=v6,yshift=-0.4cm,xshift=-0.1cm] {};
+      \draw [local] (v2) -- (v1);
+      \draw [local] (v1) -- (v3);
+      \draw [local] (v3) -- (v2);
+      \draw [local] (v2) -- (v5);
+      \draw [local] (v1) -- (v4);
+      \draw [local] (v5) -- (v4);
+      \draw [dist] (v5) -- (v6);
+      \draw [dist] (v4) -- (v7);
+      \draw [dist] (v8) -- (v4);
+      \draw [local] (v8) -- (v9);
+      \draw [local] (v9) -- (v11);
+      \draw [local] (v10) -- (v7);
+      \draw [dist] (v10) -- (v12);
+      \draw [dist] (v12) -- (v13);
+      \draw [local] (v10) -- (v6);
+      \draw [dist] (v10) -- (v11);
+      \draw [local] (v13) -- (v10);
+      \draw [local] (v11) -- (v12);
+    \end{tikzpicture}
+  }
+  \caption{Partitioned graph}
+\end{figure}
