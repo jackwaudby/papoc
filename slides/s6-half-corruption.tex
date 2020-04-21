@@ -11,24 +11,28 @@
 \begin{frame}
   \frametitle{Reciprocal Inconsistency}
   \begin{itemize}
-  \item $T_x$ deletes the edge
-  \item $T_y$ appends a property \textcolor{red}{\texttt{year}}
+    \uncover<2->{\item $T_x$ deletes the edge}
+    \uncover<3->{  \item $T_y$ appends a property \texttt{\{\textcolor{red}{year}:1937\}}}
   \end{itemize}
 
   \begin{figure}
     \centering
     \begin{tikzpicture}
-      \draw [thick,<-,>=stealth] (0,0) -- (0,4) node[anchor=south] {$S_i$};
-      \draw [thick,<-,>=stealth] (4,0) -- (4,4) node[anchor=south] {$S_j$};
-      \draw [thick,<-,>=stealth] (0,1) -- (4,3)  node[right] {$T_y$};
-      \draw [thick,->,>=stealth] (0,3.6) node[left] {$T_x$} -- (4,1.2);
+      \uncover<1->{\draw [thick,<-,>=stealth] (0,0) -- (0,4) node[anchor=south] {$S_i$};
+        \draw [thick,<-,>=stealth] (4,0) -- (4,4) node[anchor=south] {$S_j$};}
+      \uncover<3->{
+        \draw [thick,<-,>=stealth] (0,1) -- (4,3)  node[right] {$T_y$};
+      }
+      \uncover<2->{
+        \draw [thick,->,>=stealth] (0,3.6) node[left] {$T_x$} -- (4,1.2);
+      }
     \end{tikzpicture}
   \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Reciprocal Inconsistency}
-  The distributed edge is now reciprocally inconsistent
+  The distributed edge is now \emph{reciprocally inconsistent}
   \begin{figure}
     \centering
     \input{./figures/hc-edge}
@@ -38,32 +42,31 @@
 
 \begin{frame}
   \frametitle{Reciprocal Inconsistency}
-Storage representation consists of two inconsistent unidirectional edges
-
-\begin{figure}
-\centering
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[width=.9\linewidth]{./images/si}
-  \caption{$S_i$}
-  \label{fig:sub1}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-  \centering
-  \includegraphics[width=.9\linewidth]{./images/sj}
-  \caption{$S_j$}
-  \label{fig:sub2}
-\end{subfigure}
-\caption{Storage representation}
-\label{fig:test}
-\end{figure}
+  Storage layer consists of two inconsistent uni-directional edge pointers
+  \begin{figure}
+    \centering
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{./images/si}
+      \caption{$S_i$}
+      \label{fig:sub1}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{./images/sj}
+      \caption{$S_j$}
+      \label{fig:sub2}
+    \end{subfigure}
+    \caption{Edge storage layer representation}
+    \label{fig:test}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Reciprocal Inconsistency}
   \begin{itemize}
-  \item Reciprocally inconsistent edges are the source for \emph{semantic corruption}
-  \item Semantic corruption spreads until the database becomes \emph{operationally corrupt}
-  \item \textbf{Motivated the design of a lightweight protocol that preserves reciprocal consistency}
+     \uncover<1->{  \item Reciprocally inconsistent edges are the source for \emph{semantic corruption}}
+     \uncover<2->{  \item Semantic corruption spreads through the database}
+     \uncover<3->{  \item \textbf{Motivated the design of a lightweight concurrency control protocol that preserves distributed edge reciprocal consistency}}
   \end{itemize}
 \end{frame}

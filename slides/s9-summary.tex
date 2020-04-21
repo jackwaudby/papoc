@@ -1,9 +1,9 @@
 \begin{frame}
   \frametitle{Summary}
   \begin{itemize}
-  \item Lack of concurrency control can lead to reciprocally inconsistent edges
-  \item Semantic corruption spreads quickly in a graph database
-  \item \tDelta protocol prevents reciprocal inconsistency given the bound $\Delta$ in not violated
-  \item \tDelta protocol significantly reduces the time until operational corruption at the cost of some aborts
+  \item Lack of concurrency control in a distributed graph database can lead to reciprocally inconsistent distributed edges
+    \item Resulting in the spread of semantic corruption
+  \item \tDelta protocol prevents reciprocal inconsistency given $\Delta$ is not exceeded
+  \item \tDelta protocol significantly reduces the spread of semantic corruption at the cost of a very small fraction of aborts
   \end{itemize}
 \end{frame}

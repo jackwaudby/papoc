@@ -1,16 +1,16 @@
 \begin{frame}
   \frametitle{Performance Evaluation}
-  Two metrics the following two metrics for various values of $\Delta$:
+ Through simulations the following two metrics for various values of $\Delta$ were evaluated:
   \begin{itemize}
-  \item Time taken for 10\% of a large database to be corrupt
-    \item Number of transactions aborted per second
+  \item Time taken for 10\% of a large database to become semantically corrupt
+    \item Fraction of transactions aborted per second
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Time until 10\% database corruption2 $\boldsymbol{log(U)}$ vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
+  \frametitle{Time until 10\% semantic corruption $\boldsymbol{log(U)}$ vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
   \begin{center}
-    For $\Delta = 50ms$, time taken for 10\% database corruption is between to $1$-$75$ years
+    For $\Delta = 50ms$, time taken for 10\% of a large database to become semantically corrupt is between to $1$-$75$ years
   \end{center}
     \begin{figure}[h!]
     \centering
@@ -19,7 +19,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Fraction of Aborts vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
+  \frametitle{Fraction of Aborts $(\boldsymbol{\alpha})$ vs Transaction Arrival Rate $(\boldsymbol{\lambda})$}
   \begin{center}
     For $\Delta = 50 ms$, the fraction of aborts is between 1 − 5\%
   \end{center}
